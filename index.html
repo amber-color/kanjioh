@@ -634,11 +634,18 @@ function calculate() {
         for (var j = 1; j < amts.length; j++) { if (amts[j] !== amts[0]) { allSame = false; break; } }
         if (!allSame) slopeMismatch.push(partyLabel(k + 1) + ' 傾斜' + sl);
       }
-      // 幹事が出席しており、同傾斜の非幹事がいる場合に比較
-      if (resultArray[kanjiI][attIdx(k)] && slopeGroups[kanjiSl] && slopeGroups[kanjiSl].length > 0) {
+      // 幹事が出席しており、傾斜が幹事以下の非幹事がいる場合に比較
+      if (resultArray[kanjiI][attIdx(k)]) {
         var kRounded = resultArray[kanjiI][roundedIdx(k, N)];
-        var peerMin = slopeGroups[kanjiSl].reduce(function(a, b) { return a < b ? a : b; });
-        if (kRounded < peerMin) kanjiSlopeLow.push(partyLabel(k + 1));
+        var kanjiSlNum = Number(resultArray[kanjiI][1]);
+        for (var ii = 0; ii < resultArray.length; ii++) {
+          if (ii === kanjiI || !resultArray[ii][attIdx(k)]) continue;
+          if (Number(resultArray[ii][1]) > kanjiSlNum) continue;
+          if (resultArray[ii][roundedIdx(k, N)] > kRounded) {
+            kanjiSlopeLow.push(partyLabel(k + 1));
+            break;
+          }
+        }
       }
     }
   } catch(e) { console.error('同傾斜チェックエラー:', e); }
@@ -648,7 +655,7 @@ function calculate() {
     msgParts.push('<b>幹事の精算額がマイナス</b><br>' + warnLines.join('<br>') + '<br>傾斜や丸め単位を調整してください。');
   }
   if (kanjiSlopeLow.length > 0) {
-    msgParts.push('<b>幹事の精算額が同傾斜の参加者より少なくなっています</b><br>' + kanjiSlopeLow.join('、') + '<br>丸め単位を小さくすることで解消できる場合があります。');
+    msgParts.push('<b>幹事の精算額が同傾斜以下の参加者より少なくなっています</b><br>' + kanjiSlopeLow.join('、') + '<br>丸め単位を小さくすることで解消できる場合があります。');
   }
   if (slopeMismatch.length > 0) {
     msgParts.push('<b>同傾斜の非幹事で精算額が異なります</b><br>' + slopeMismatch.join('<br>') + '<br>丸め単位を小さくするか、傾斜を変えてください。');
@@ -664,7 +671,7 @@ function calculate() {
       var activeTypes = [warnLines, kanjiSlopeLow, slopeMismatch, gokifuWarn].filter(function(a) { return a.length > 0; }).length;
       titleEl.textContent = activeTypes > 1 ? '⚠️ 計算結果に注意が必要です' :
         warnLines.length > 0        ? '⚠️ 幹事の精算額がマイナスになっています' :
-        kanjiSlopeLow.length > 0    ? '⚠️ 幹事の精算額が同傾斜の参加者より少なくなっています' :
+        kanjiSlopeLow.length > 0    ? '⚠️ 幹事の精算額が同傾斜以下の参加者より少なくなっています' :
         slopeMismatch.length > 0    ? '⚠️ 同傾斜の精算額が一致していません' :
                                       '⚠️ ご寄付の計算に過剰が発生しています';
       msgEl.innerHTML = msgParts.join('<br><br>');
