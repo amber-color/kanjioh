@@ -131,16 +131,20 @@ tbody tr:hover { background: #f0f4ff; }
   position: relative; z-index: 1;
 }
 #participantTable tbody td:has(input[type="checkbox"]) {
-  padding: 6px 10px; white-space: nowrap;
+  padding: 6px 8px; text-align: center;
+}
+.subheader {
+  font-size: 0.7rem !important; font-weight: 500 !important;
+  color: var(--text-muted); padding: 4px 8px !important;
 }
 #participantTable tbody td:has(input[type="radio"]) { padding: 8px; }
 
 /* Donation input */
 .donation-input {
-  width: 60px; border: none; border-bottom: 1.5px solid #cbd5e1;
-  border-radius: 0; background: transparent; padding: 2px 4px;
-  font-size: 0.8rem; font-family: inherit; outline: none;
-  vertical-align: middle; text-align: right; color: var(--text); margin-left: 5px;
+  width: 100%; border: none; border-bottom: 1.5px solid #cbd5e1;
+  border-radius: 0; background: transparent; padding: 7px 8px;
+  font-size: 0.85rem; font-family: inherit; outline: none;
+  text-align: right; color: var(--text); display: block;
 }
 .donation-input:focus { border-bottom-color: var(--primary); background: rgba(99,102,241,0.06); }
 .donation-input::-webkit-inner-spin-button,
@@ -207,12 +211,17 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
         <table id="participantTable">
           <thead>
             <tr>
-              <th>お名前</th>
-              <th>傾斜</th>
-              <th>幹事<br>(端数)</th>
-              <th class="party-col">１次会</th>
-              <th class="party-col">２次会</th>
-              <th class="party-col">３次会</th>
+              <th rowspan="2">お名前</th>
+              <th rowspan="2">傾斜</th>
+              <th rowspan="2">幹事<br>(端数)</th>
+              <th colspan="2" class="party-col">１次会</th>
+              <th colspan="2" class="party-col">２次会</th>
+              <th colspan="2" class="party-col">３次会</th>
+            </tr>
+            <tr>
+              <th class="subheader">出欠</th><th class="subheader">ご寄付額</th>
+              <th class="subheader">出欠</th><th class="subheader">ご寄付額</th>
+              <th class="subheader">出欠</th><th class="subheader">ご寄付額</th>
             </tr>
           </thead>
           <tbody>
@@ -220,9 +229,9 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
               <td><input type="text" name="name" value="ゲスト1"></td>
               <td><input type="number" name="slope" value="5" min="0" step="0.01"></td>
               <td><input type="radio" name="fraction" value="1"></td>
-              <td><input type="checkbox" name="attendance1" checked><input type="number" name="donation1" class="donation-input" min="0" step="1" placeholder="0"></td>
-              <td><input type="checkbox" name="attendance2"><input type="number" name="donation2" class="donation-input" min="0" step="1" placeholder="0"></td>
-              <td><input type="checkbox" name="attendance3"><input type="number" name="donation3" class="donation-input" min="0" step="1" placeholder="0"></td>
+              <td><input type="checkbox" name="attendance1" checked></td><td><input type="number" name="donation1" class="donation-input" min="0" step="1" placeholder="0"></td>
+              <td><input type="checkbox" name="attendance2"></td><td><input type="number" name="donation2" class="donation-input" min="0" step="1" placeholder="0"></td>
+              <td><input type="checkbox" name="attendance3"></td><td><input type="number" name="donation3" class="donation-input" min="0" step="1" placeholder="0"></td>
             </tr>
           </tbody>
         </table>
@@ -267,17 +276,25 @@ function addParty() {
   item.innerHTML = '<label>' + label + ' 総額</label><input type="number" class="total-input" id="総額' + n + '" min="0">';
   btn.parentNode.insertBefore(item, btn);
 
-  // ヘッダーに列追加
+  // ヘッダー1行目：colspan=2 の th 追加
+  var thead = document.getElementById("participantTable").getElementsByTagName("thead")[0];
   var th = document.createElement("th");
   th.className = "party-col";
+  th.colSpan = 2;
   th.textContent = label;
-  document.getElementById("participantTable").getElementsByTagName("thead")[0].rows[0].appendChild(th);
+  thead.rows[0].appendChild(th);
 
-  // 既存の各行に列追加
+  // ヘッダー2行目：出欠 と ご寄付額 追加
+  var th1 = document.createElement("th"); th1.className = "subheader"; th1.textContent = "出欠";
+  var th2 = document.createElement("th"); th2.className = "subheader"; th2.textContent = "ご寄付額";
+  thead.rows[1].appendChild(th1);
+  thead.rows[1].appendChild(th2);
+
+  // 既存の各行に列追加 (2セル)
   var rows = document.getElementById("participantTable").getElementsByTagName("tbody")[0].getElementsByTagName("tr");
   for (var i = 0; i < rows.length; i++) {
-    var td = rows[i].insertCell(-1);
-    td.innerHTML = '<input type="checkbox" name="attendance' + n + '"><input type="number" name="donation' + n + '" class="donation-input" min="0" step="1" placeholder="0">';
+    rows[i].insertCell(-1).innerHTML = '<input type="checkbox" name="attendance' + n + '">';
+    rows[i].insertCell(-1).innerHTML = '<input type="number" name="donation' + n + '" class="donation-input" min="0" step="1" placeholder="0">';
   }
 }
 
@@ -290,7 +307,8 @@ function addRow() {
   newRow.insertCell(2).innerHTML = '<input type="radio" name="fraction" value="' + newIndex + '">';
   for (var k = 1; k <= partyCount; k++) {
     var checked = (k === 1) ? " checked" : "";
-    newRow.insertCell(-1).innerHTML = '<input type="checkbox" name="attendance' + k + '"' + checked + '><input type="number" name="donation' + k + '" class="donation-input" min="0" step="1" placeholder="0">';
+    newRow.insertCell(-1).innerHTML = '<input type="checkbox" name="attendance' + k + '"' + checked + '>';
+    newRow.insertCell(-1).innerHTML = '<input type="number" name="donation' + k + '" class="donation-input" min="0" step="1" placeholder="0">';
   }
 }
 
@@ -312,9 +330,8 @@ function calculate() {
     row.push(cells[1].getElementsByTagName("input")[0].value); // [1] slope
     row.push(cells[2].getElementsByTagName("input")[0].checked ? "1" : "0"); // [2] 幹事
     for (var k = 0; k < N; k++) {
-      var inputs = cells[3 + k].getElementsByTagName("input");
-      row.push(inputs[0].checked);                             // [3+2k] att
-      row.push(Number(inputs[1] ? inputs[1].value : 0) || 0); // [3+2k+1] don
+      row.push(cells[3 + 2*k].getElementsByTagName("input")[0].checked);
+      row.push(Number(cells[3 + 2*k + 1].getElementsByTagName("input")[0].value) || 0);
     }
     resultArray.push(row);
   }
