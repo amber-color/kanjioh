@@ -210,6 +210,12 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
   font-size: 0.875rem; border: 2px dashed var(--border);
 }
 
+.btn-save { background: #faf5ff; color: #7c3aed; border: 1.5px solid #c4b5fd; }
+.btn-save:hover { background: #ede9fe; transform: translateY(-1px); }
+.btn-copy { background: #f0fdf4; color: #047857; border: 1.5px solid #6ee7b7; }
+.btn-copy:hover { background: #d1fae5; transform: translateY(-1px); }
+.result-actions { padding: 10px 16px; border-top: 1px solid var(--border); }
+
 /* Modal */
 .modal-overlay {
   display: none; position: fixed; inset: 0;
@@ -257,6 +263,7 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
 
 <div class="btn-row">
   <button class="btn-add"    onclick="addRow()">＋ 参加者追加</button>
+  <button class="btn-save"   onclick="saveAsHTML()">HTML保存</button>
   <select id="roundingUnit" class="select-unit">
     <option value="100">100円単位</option>
     <option value="500">500円単位</option>
@@ -316,6 +323,9 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
   <div class="output-pane">
     <div class="result-card" id="resultArea" style="display:none">
       <div id="resultTable"></div>
+      <div class="result-actions">
+        <button id="btnCopy" class="btn-copy" onclick="copyResultTable()">クリップボードにコピー</button>
+      </div>
     </div>
     <div id="resultMessages"></div>
     <div id="resultPlaceholder" class="result-placeholder">
@@ -810,6 +820,65 @@ function gentleSlope() {
     formatSlope(input);
   }
   calculate();
+}
+
+function copyResultTable() {
+  var table = document.getElementById('R');
+  if (!table) return;
+  var range = document.createRange();
+  range.selectNode(table);
+  window.getSelection().removeAllRanges();
+  window.getSelection().addRange(range);
+  try {
+    document.execCommand('copy');
+    var btn = document.getElementById('btnCopy');
+    var orig = btn.textContent;
+    btn.textContent = 'コピー完了！';
+    setTimeout(function() { btn.textContent = orig; }, 2000);
+  } catch(e) {}
+  window.getSelection().removeAllRanges();
+}
+
+function saveAsHTML() {
+  var clone = document.documentElement.cloneNode(true);
+
+  // 現在の入力値をクローンの属性に反映
+  var origInputs = document.querySelectorAll('input, select');
+  var cloneInputs = clone.querySelectorAll('input, select');
+  for (var i = 0; i < origInputs.length; i++) {
+    var orig = origInputs[i], cl = cloneInputs[i];
+    if (orig.type === 'checkbox' || orig.type === 'radio') {
+      if (orig.checked) cl.setAttribute('checked', ''); else cl.removeAttribute('checked');
+    } else if (orig.tagName === 'SELECT') {
+      Array.from(cl.options).forEach(function(opt, j) {
+        if (j === orig.selectedIndex) opt.setAttribute('selected', ''); else opt.removeAttribute('selected');
+      });
+    } else {
+      cl.setAttribute('value', orig.value);
+    }
+  }
+
+  // モーダルを閉じた状態にする
+  var m = clone.getElementById ? clone.getElementById('warnModal') : clone.querySelector('#warnModal');
+  if (m) m.classList.remove('visible');
+
+  // partyCount を現在値で上書き
+  var html = '<!DOCTYPE html>\n' + clone.outerHTML;
+  html = html.replace(/var partyCount = \d+;/, 'var partyCount = ' + partyCount + ';');
+
+  // yyyymmdd.html でダウンロード
+  var now = new Date();
+  var filename = now.getFullYear() +
+    String(now.getMonth() + 1).padStart(2, '0') +
+    String(now.getDate()).padStart(2, '0') + '.html';
+  var blob = new Blob([html], {type: 'text/html'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
 }
 
 function formatSlope(input) {
