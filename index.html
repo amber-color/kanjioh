@@ -605,10 +605,21 @@ function recalcResult(tbody, sougakuVals, lastActive, keiCol) {
     }
     if (!totalRow || !totalRow.cells[c]) continue;
     var original = sougakuVals[c - 1];
-    var isMatch = colSum === original;
+    var diff = colSum - original;
+    var isMatch = diff === 0;
     totalRow.cells[c].classList.toggle("result-mismatch", !isMatch);
-    if (!isMatch) totalRow.cells[c].dataset.diff = colSum - original;
+    totalRow.cells[c].textContent = colSum;
+    if (!isMatch) totalRow.cells[c].dataset.diff = diff;
     else delete totalRow.cells[c].dataset.diff;
+  }
+
+  // 計セルも更新
+  if (keiCol > 0 && totalRow && totalRow.cells[keiCol]) {
+    var realTotal = 0;
+    for (var c = 1; c <= lastActive; c++) {
+      if (totalRow.cells[c]) realTotal += Number(totalRow.cells[c].textContent) || 0;
+    }
+    totalRow.cells[keiCol].textContent = realTotal;
   }
 
   // メッセージ欄を更新
