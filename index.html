@@ -508,13 +508,15 @@ function calculate() {
       }
     }
 
-    // Step 4: 端数（< unit/2）を幹事（出席していなければ最大金額者）が吸収
+    // Step 4: 端数（< unit/2）を、マイナスにならない最大金額者が吸収（幹事優先）
     if (remainder !== 0) {
-      var absorbI = resultArray[kanjiI][attIdx(k)] ? kanjiI : -1;
-      if (absorbI < 0) {
-        var maxVal = -Infinity;
+      var absorbI = -1;
+      if (resultArray[kanjiI][attIdx(k)] && resultArray[kanjiI][roundedIdx(k, N)] + remainder >= 0) {
+        absorbI = kanjiI;
+      } else {
+        var maxVal = -1;
         for (var i = 0; i < resultArray.length; i++) {
-          if (resultArray[i][attIdx(k)] && resultArray[i][roundedIdx(k, N)] > maxVal) {
+          if (resultArray[i][attIdx(k)] && resultArray[i][roundedIdx(k, N)] + remainder >= 0 && resultArray[i][roundedIdx(k, N)] > maxVal) {
             maxVal = resultArray[i][roundedIdx(k, N)]; absorbI = i;
           }
         }
