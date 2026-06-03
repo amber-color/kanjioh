@@ -28,6 +28,7 @@ body {
   min-height: 100vh;
 }
 
+/* ── Header ── */
 .app-header {
   background: linear-gradient(135deg, #3730a3 0%, #4f46e5 100%);
   color: white;
@@ -37,35 +38,30 @@ body {
   gap: 12px;
   box-shadow: 0 2px 12px rgba(79,70,229,0.3);
 }
+.app-header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.3px; }
 
-.app-header h1 {
-  font-size: 1.4rem;
-  font-weight: 700;
-  letter-spacing: -0.3px;
+/* ── Main ── */
+main { max-width: 1400px; margin: 0 auto; padding: 20px 16px; }
+
+/* ── Responsive 2-column layout ── */
+.app-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: start;
+}
+@media (min-width: 900px) {
+  .app-layout { grid-template-columns: 1fr 1fr; }
 }
 
-main {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 24px 20px;
-}
-
-.card {
-  background: var(--surface);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 20px 24px;
-  margin-bottom: 20px;
-}
-
+/* ── Buttons ── */
 .btn-row {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
-
 button {
   padding: 9px 18px;
   border: none;
@@ -77,16 +73,12 @@ button {
   font-family: inherit;
   line-height: 1;
 }
-
-.btn-add   { background: #ecfdf5; color: #047857; border: 1.5px solid #6ee7b7; }
-.btn-add:hover   { background: #d1fae5; transform: translateY(-1px); }
-
-.btn-calc  { background: var(--primary); color: white; }
-.btn-calc:hover  { background: var(--primary-dark); box-shadow: var(--shadow-md); transform: translateY(-1px); }
-
-.btn-steep { background: #fff7ed; color: #c2410c; border: 1.5px solid #fdba74; }
-.btn-steep:hover { background: #ffedd5; transform: translateY(-1px); }
-
+.btn-add    { background: #ecfdf5; color: #047857; border: 1.5px solid #6ee7b7; }
+.btn-add:hover    { background: #d1fae5; transform: translateY(-1px); }
+.btn-calc   { background: var(--primary); color: white; }
+.btn-calc:hover   { background: var(--primary-dark); box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.btn-steep  { background: #fff7ed; color: #c2410c; border: 1.5px solid #fdba74; }
+.btn-steep:hover  { background: #ffedd5; transform: translateY(-1px); }
 .btn-gentle { background: #eff6ff; color: #1d4ed8; border: 1.5px solid #93c5fd; }
 .btn-gentle:hover { background: #dbeafe; transform: translateY(-1px); }
 
@@ -104,23 +96,22 @@ button {
   transition: border-color 0.15s, box-shadow 0.15s;
   height: 36px;
 }
-
 .select-unit:focus {
   border-color: var(--primary-light);
   box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
 }
 
+/* ── Details ── */
 details {
   background: #f0f9ff;
   border: 1px solid #bae6fd;
   border-radius: 8px;
   padding: 12px 16px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   font-size: 0.85rem;
   color: #0c4a6e;
   line-height: 1.8;
 }
-
 details summary {
   font-weight: 600;
   cursor: pointer;
@@ -131,28 +122,21 @@ details summary {
   gap: 6px;
   user-select: none;
 }
+details summary::before { content: '▶'; font-size: 0.65rem; transition: transform 0.2s; }
+details[open] summary::before { transform: rotate(90deg); }
 
-details summary::before {
-  content: '▶';
-  font-size: 0.65rem;
-  transition: transform 0.2s;
+/* ── Input table card (no padding — table fills edge to edge) ── */
+.table-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
 }
+.table-wrap { overflow-x: auto; }
 
-details[open] summary::before {
-  transform: rotate(90deg);
-}
-
-.table-wrap {
-  overflow-x: auto;
-}
-
-table {
-  border-collapse: collapse;
-}
-
-table, th, td {
-  border: 1px solid var(--border);
-}
+/* ── Table base ── */
+table { border-collapse: collapse; width: 100%; }
+table, th, td { border: 1px solid var(--border); }
 
 thead th {
   background: #f8fafc;
@@ -163,92 +147,93 @@ thead th {
   text-align: center;
   white-space: nowrap;
 }
-
 tbody td {
-  padding: 8px 10px;
+  padding: 0;           /* removed — inputs fill the cell */
   text-align: center;
   font-size: 0.875rem;
 }
-
 tbody tr:nth-child(even) { background: #fafafa; }
 tbody tr:hover { background: #f0f4ff; }
 
-input[type="text"],
-input[type="number"] {
-  border: 1.5px solid var(--border);
-  border-radius: 6px;
-  padding: 5px 7px;
-  font-size: 0.85rem;
+/* ── Excel-style inputs inside tbody td ── */
+#participantTable tbody td input[type="text"],
+#participantTable tbody td input[type="number"] {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  width: 100%;
+  padding: 9px 10px;
+  font-size: 0.875rem;
   font-family: inherit;
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
-  background: white;
+  display: block;
+  box-shadow: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+/* Focus: highlight the cell, not the input */
+#participantTable tbody td:has(input[type="text"]:focus),
+#participantTable tbody td:has(input[type="number"]:focus) {
+  background: #eef2ff !important;
+  box-shadow: inset 0 0 0 2px var(--primary);
+  position: relative;
+  z-index: 1;
 }
 
-input[type="text"]:focus,
-input[type="number"]:focus {
+/* Suppress number input spin buttons for clean look */
+#participantTable input[type="number"]::-webkit-inner-spin-button,
+#participantTable input[type="number"]::-webkit-outer-spin-button { opacity: 0.4; }
+
+/* Header row inputs (総額) */
+#participantTable thead th input[type="text"] {
+  border: 1.5px solid var(--border);
+  border-radius: 5px;
+  background: white;
+  padding: 4px 6px;
+  font-size: 0.8rem;
+  font-family: inherit;
+  outline: none;
+  width: 72px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+#participantTable thead th input[type="text"]:focus {
   border-color: var(--primary-light);
   box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
 }
 
-input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--primary);
-  cursor: pointer;
+/* Checkbox / radio cells keep their own padding */
+#participantTable tbody td:has(input[type="checkbox"]),
+#participantTable tbody td:has(input[type="radio"]) {
+  padding: 8px;
 }
 
-input[type="radio"] {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--primary);
-  cursor: pointer;
-}
+input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; }
+input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; }
 
+/* ── Result card ── */
 .result-card {
   background: var(--surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 16px 20px;
   overflow-x: auto;
-  margin-top: 20px;
 }
-
-.result-card-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--primary);
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.result-card-label::before {
-  content: '';
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  background: var(--primary);
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
 .result-card table { width: auto; }
+.result-card tbody tr:last-child td    { background: #f0fdf4; font-weight: 600; color: #15803d; }
+.result-card tbody tr:nth-last-child(2) td { background: #eff6ff; font-weight: 600; color: #1d4ed8; }
 
-.result-card tbody tr:last-child td {
-  background: #f0fdf4;
-  font-weight: 600;
-  color: #15803d;
+/* ── Placeholder (shown before first calculation on PC) ── */
+.result-placeholder {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  border: 2px dashed var(--border);
 }
-
-.result-card tbody tr:nth-last-child(2) td {
-  background: #eff6ff;
-  font-weight: 600;
-  color: #1d4ed8;
-}
+.result-placeholder span { display: block; margin-top: 8px; font-size: 0.78rem; }
 </style>
 </head>
 <body>
@@ -286,38 +271,48 @@ input[type="radio"] {
   <button class="btn-gentle" onclick="gentleSlope()">傾斜を緩くする</button>
 </div>
 
-<div class="card">
-  <div class="table-wrap">
-    <table id="participantTable">
-      <thead>
-        <tr>
-          <th width="80px">お名前</th>
-          <th width="65px">傾斜</th>
-          <th width="80px">幹事<br>(端数)</th>
-          <th width="80px">ご寄付額</th>
-          <th width="130px">１次会出欠<br>総額:<input type="text" id="１次会総額" value="" size="6"></th>
-          <th width="130px">２次会出欠<br>総額:<input type="text" id="２次会総額" value="" size="6"></th>
-          <th width="130px">３次会出欠<br>総額:<input type="text" id="３次会総額" value="" size="6"></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><input type="text" name="name" size="5" value="ゲスト1"></td>
-          <td><input type="number" name="slope" value="5" min="0" step="0.01" style="width:60px"></td>
-          <td><input type="radio" name="fraction" value="1"></td>
-          <td><input type="text" size="5" name="donation"></td>
-          <td><input type="checkbox" name="attendance1" checked="checked"></td>
-          <td><input type="checkbox" name="attendance2"></td>
-          <td><input type="checkbox" name="attendance3"></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
+<div class="app-layout">
 
-<div class="result-card" id="resultArea" style="display:none">
-  <div class="result-card-label" id="resultLabel"></div>
-  <div id="resultTable"></div>
+  <div class="input-pane">
+    <div class="table-card">
+      <div class="table-wrap">
+        <table id="participantTable">
+          <thead>
+            <tr>
+              <th width="80px">お名前</th>
+              <th width="65px">傾斜</th>
+              <th width="80px">幹事<br>(端数)</th>
+              <th width="80px">ご寄付額</th>
+              <th width="130px">１次会出欠<br>総額:<input type="text" id="１次会総額" value="" size="6"></th>
+              <th width="130px">２次会出欠<br>総額:<input type="text" id="２次会総額" value="" size="6"></th>
+              <th width="130px">３次会出欠<br>総額:<input type="text" id="３次会総額" value="" size="6"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="text" name="name" value="ゲスト1"></td>
+              <td><input type="number" name="slope" value="5" min="0" step="0.01"></td>
+              <td><input type="radio" name="fraction" value="1"></td>
+              <td><input type="text" name="donation"></td>
+              <td><input type="checkbox" name="attendance1" checked="checked"></td>
+              <td><input type="checkbox" name="attendance2"></td>
+              <td><input type="checkbox" name="attendance3"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="output-pane">
+    <div class="result-card" id="resultArea" style="display:none">
+      <div id="resultTable"></div>
+    </div>
+    <div id="resultPlaceholder" class="result-placeholder">
+      計算ボタンを押すと精算額が表示されます
+    </div>
+  </div>
+
 </div>
 
 </main>
@@ -337,8 +332,8 @@ var cell5 = newRow.insertCell(4);
 var cell6 = newRow.insertCell(5);
 var cell7 = newRow.insertCell(6);
 var newIndex = table.rows.length;
-cell1.innerHTML = '<input type="text" name="name" size="5" value="ゲスト' + newIndex + '">'; cell2.innerHTML = '<input type="number" name="slope" value="5" min="0" step="0.01" style="width:60px">'; cell3.innerHTML = '<input type="radio" name="fraction" value="' + newIndex + '">';
-cell4.innerHTML = '<input type="text" name="donation" size="5">'; cell5.innerHTML = '<input type="checkbox" name="attendance1" checked = "checked">'; cell6.innerHTML = '<input type="checkbox" name="attendance2">'; cell7.innerHTML = '<input type="checkbox" name="attendance3">';
+cell1.innerHTML = '<input type="text" name="name" value="ゲスト' + newIndex + '">'; cell2.innerHTML = '<input type="number" name="slope" value="5" min="0" step="0.01">'; cell3.innerHTML = '<input type="radio" name="fraction" value="' + newIndex + '">';
+cell4.innerHTML = '<input type="text" name="donation">'; cell5.innerHTML = '<input type="checkbox" name="attendance1" checked = "checked">'; cell6.innerHTML = '<input type="checkbox" name="attendance2">'; cell7.innerHTML = '<input type="checkbox" name="attendance3">';
 }
 
 function calculate() {
@@ -572,7 +567,6 @@ resultArray[i][15] -= exgokifu3_2*(resultArray[i][15])/seisangakusum3;
 }
 console.table(resultArray)
 
-// 1円単位で丸めた精算額（13~15）を基に、選択された単位で丸めて16~18に格納
 for (let i = 0; i < resultArray.length; i++) {
 resultArray[i][13] = Round1(resultArray[i][13]);
 resultArray[i][14] = Round1(resultArray[i][14]);
@@ -617,9 +611,8 @@ for (let i = 1; i < resultArray.length; i++) {
 resultArray[i][19] = Number(resultArray[i][16]) + Number(resultArray[i][17]) + Number(resultArray[i][18]);
 }
 
-var unitLabel = unit === 100 ? "１００円単位" : unit === 500 ? "５００円単位" : "１０００円単位";
-document.getElementById("resultLabel").textContent = unitLabel;
 document.getElementById("resultArea").style.display = "";
+document.getElementById("resultPlaceholder").style.display = "none";
 
 var container = document.getElementById("resultTable");
 container.innerHTML = "";
