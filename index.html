@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>幹事王</title>
+<style>
+table {
+border-collapse: collapse;
+margin: 0 10px;
+}
+
+table, th, td {
+border: 1px solid gray;
+}
+th, td {
+padding: 5px;
+text-align: center;
+}
+.table{
+float:left;
+}
+.explanation{
+margin: 10px;
+border:1px black;
+}
+h2{
+margin: 10px;
+}
+details{
+float:top;
+margin: 10px;
+}
+</style>
+</head>
+<body>
+<h2> 幹事王
+<button onclick="addRow()">参加者追加</button>
+<button onclick="calculate()">計算</button>
+</h2>
+<details><summary>使い方</summary>・「参加者追加」ボタンで参加人数分の行を表示させる<br>
+・それぞれにお名前、傾斜、ご寄付額、○次会出欠チェックボックスを入力する。幹事の人は幹事のラジオボタンにチェックする。<br>
+・○次会で支払った総額を入力する。<br>
+・「計算」ボタンで、精算額の表が下に表示される。<br>
+仕様<br>
+・傾斜は、支払総額を分担する比率の整数比。例えば、８の人は４の人の２倍の額を負担する。<br>
+・精算額を四捨五入して丸めたときの端数は、幹事に集まるようにしている。<br>
+・ご寄付がある場合、ご寄付を出した方が出席された会にご寄付を配分する。<br>
+配分割合は、まずご寄付がなかった場合の各人の負担額を計算し、ご寄付額がその人の負担額以上の場合は、<br>
+その人の負担額をゼロにし、それでも余るご寄付は、総額に応じた割合で分配する。<br>
+ご寄付額がその人の負担額未満の場合は、カンパしきれない額を精算額として表示する。
+</details>
+<!--丸め
+<label><input type="radio" name="unit" value="1">1円単位</label>
+<label><input type="radio" name="unit" value="100" checked>100円単位</label>
+<label><input type="radio" name="unit" value="500">500円単位</label>
+<label><input type="radio" name="unit" value="1000">1000円単位</label>
+<label><input type="radio" name="unit" value="compare">比較</label><br><br>
+-->
+<table id="participantTable">
+<thead>
+<tr>
+<th width="80px">お名前</th>
+<th width="50px">傾斜</th>
+<th width="80px">幹事<br>(端数)</th>
+<th width="80px">ご寄付額</th>
+<th width="120px">１次会出欠<br>総額:<input type="text" id="１次会総額" value="" size="6"></th>
+<th width="120px">２次会出欠<br>総額:<input type="text" id="２次会総額" value="" size="6"></th>
+<th width="120px">３次会出欠<br>総額:<input type="text" id="３次会総額" value="" size="6"></th>
+</tr>
+</thead>
+<tbody>
+<!-- 初期行 -->
+<tr>
+<td><input type="text" name="name" size="5" value="ゲスト1"></td>
+<td>
+<select name="slope">
+<!-- 傾斜の選択肢 -->
+<option value="10">10</option>
+<option value="9">9</option>
+<option value="8">8</option>
+<option value="7">7</option>
+<option value="6">6</option>
+<option value="5">5</option>
+<option value="4">4</option>
+<option value="3">3</option>
+<option value="2">2</option>
+<option value="1">1</option>
+<option value="0">0</option>
+</select>
+</td>
+<td><input type="radio" name="fraction" value="1"></td>
+<td><input type="text" size="5" name="donation"></td>
+<td><input type="checkbox" name="attendance1" checked = "checked"></td>
+<td><input type="checkbox" name="attendance2"></td>
+<td><input type="checkbox" name="attendance3"></td>
+</tr>
+</tbody>
+</table>
+<br>
+<div class="table">【１円単位】<div id="table1"></div></div>
+<div class="table">【１００円単位】<div id="table100"></div></div>
+<div class="table">【５００円単位】<div id="table500"></div></div>
+<div class="table">【１０００円単位】<div id="table1000"></div></div> <script> // 参加者情報を格納するための二次元配列
+var participantData = [
+["ゲスト1", "1", "1", "", true, false, false] ];
+
+function addRow() {
+// テーブル取得
+var table = document.getElementById("participantTable").getElementsByTagName
+('tbody')[0];
+
+// 行を行末に追加
+var newRow = table.insertRow();
+
+// セルの追加
+var cell1 = newRow.insertCell(0);
+var cell2 = newRow.insertCell(1);
+var cell3 = newRow.insertCell(2);
+var cell4 = newRow.insertCell(3);
+var cell5 = newRow.insertCell(4);
+var cell6 = newRow.insertCell(5);
+var cell7 = newRow.insertCell(6);
+
+// 各セルに要素を追加
+// 新しい行のインデックス
+var newIndex = table.rows.length;
+
+cell1.innerHTML = '<input type="text" name="name" size="5" value="ゲスト' + newIndex + '">'; cell2.innerHTML = '<select name="slope"><option value="10">10</option><option value="9">9</option><option value="8">8</option><option value="7">7</option><option value="6">6</option><option value="5">5</option><option value="4">4</option><option value="3">3</option><option value="2">2</option><option value="1">1</option><option value="0">0</option></select>'; cell3.innerHTML = '<input type="radio" name="fraction" value="' + newIndex + '">';
+cell4.innerHTML = '<input type="text" name="donation" size="5">'; cell5.
+innerHTML = '<input type="checkbox" name="attendance1" checked = "checked">'; cell6.innerHTML = '<input type="checkbox" name="attendance2">'; cell7.
+innerHTML = '<input type="checkbox" name="attendance3">';
+}
+
+function calculate() {
+//幹事（端数）が選択されているか確認
+const radioButtons = document.querySelectorAll('input[name="fraction"]');
+// いずれかのラジオボタンが選択されているか確認
+const isSelected = Array.from(radioButtons).some(radio => radio.checked);
+// 選択がない場合
+if (!isSelected) {
+alert('幹事（端数）を１人選択してください。');
+return;
+};
+
+// Tableの内容を二次元配列に格納
+var table = document.getElementById("participantTable").getElementsByTagName
+('tbody')[0];
+var rows = table.getElementsByTagName("tr"); var resultArray = [];
+
+for (var i = 0; i < rows.length; i++) {
+var rowData = [];
+var cells = rows[i].getElementsByTagName("td");
+
+for (var j = 0; j < cells.length; j++) { if (j === 0) { rowData.push(cells[j ].getElementsByTagName("input")[0].value);
+} else if (j === 1) {
+rowData.push(cells[j].getElementsByTagName("select")[0].value);
+} else if (j === 2) {
+rowData.push(cells[j].getElementsByTagName("input")[0].checked ? "1" : "0"); } else if (j === 3) { rowData.push(cells[j].getElementsByTagName("input")[0
+].value);
+} else {
+// assuming other cells are checkboxes
+rowData.push(cells[j].getElementsByTagName("input")[0].checked);
+}
+}
+resultArray.push(rowData);
+}
+
+//falseを0に、Trueを1に
+for (let i = 0; i < resultArray.length; i++) {
+if(resultArray[i][4] === false){
+resultArray[i][4] = 0;
+}else{
+resultArray[i][4] = 1;
+}
+if(resultArray[i][5] === false){
+resultArray[i][5] = 0;
+}else{
+resultArray[i][5] = 1;
+}
+if(resultArray[i][6] === false){
+resultArray[i][6] = 0;
+}else{
+resultArray[i][6] = 1;
+}
+}
+
+//ご寄付額分配割合を各総額から計算
+var sougaku1 = Number(document.getElementById("１次会総額").value);
+var sougaku2 = Number(document.getElementById("２次会総額").value);
+var sougaku3 = Number(document.getElementById("３次会総額").value);
+
+var sougakusum = sougaku1 + sougaku2 + sougaku3;
+var sougakuratio1 = sougaku1 / sougakusum;
+var sougakuratio2 = sougaku2 / sougakusum;
+var sougakuratio3 = sougaku3 / sougakusum;
+
+//１～３次会の傾斜の合計を計算（参加した人だけ加算）
+var keishasum1 = 0;
+var keishasum2 = 0;
+var keishasum3 = 0;
+for (let i = 0; i < resultArray.length; i++) {
+keishasum1 += Number(resultArray[i][1])*Number(resultArray[i][4]);
+keishasum2 += Number(resultArray[i][1])*Number(resultArray[i][5]);
+keishasum3 += Number(resultArray[i][1])*Number(resultArray[i][6]);
+}
+//ご寄付なしの場合の精算額を仮計算して配列７～９に格納（参加を勘案）問題あり。自分以外のご寄付を計算するべき。
+for (let i = 0; i < resultArray.length; i++) {
+resultArray[i][7] = sougaku1 * Number(resultArray[i][1])*Number(resultArray[i][4]) / keishasum1; //１次会
+if(keishasum2==0){
+resultArray[i][8] = 0;
+if(sougaku2 > 0){
+alert("２次会は総額が記入されていますが、参加者がいません。総額を削除するか、参加者のチェックを入れてください。");
+return;
+}
+}else{
+resultArray[i][8] = sougaku2 * Number(resultArray[i][1])*Number(resultArray[i][5]) / keishasum2; //２次会
+}
+if(keishasum3 == 0){
+resultArray[i][9] = 0;
+if(sougaku3 > 0){
+alert("３次会は総額が記入されていますが、参加者がいません。総額を削除するか、参加者のチェックを入れてください。");
+return;
+}
+}else{
+resultArray[i][9] = sougaku3 * Number(resultArray[i][1])*Number(resultArray[i][6]) / keishasum3; //３次会
+}
+}
+//ご寄付額振り分け
+for (let i = 0; i < resultArray.length; i++) {
+var gokifunashisum = Number(resultArray[i][7])+Number(resultArray[i][8])+Number(resultArray[i][9]);
+if(resultArray[i][3] >= gokifunashisum){
+//ご寄付額がご寄付なしの場合の精算額以上の場合は分配割合を元に分配
+var gokifuratio = Number(sougakuratio1 * resultArray[i][4]) + Number(sougakuratio2 * resultArray[i][5]) + Number(sougakuratio3 * resultArray[i][6]);
+if(gokifuratio == 0){ //どの会にも出席せず、ご寄付だけくださった方
+gokifuratio = Number(sougakuratio1 * 1) + Number(sougakuratio2 * 1) + Number(sougakuratio3 * 1);
+resultArray[i][10] = Number(resultArray[i][3]) * Number(sougakuratio1); //１次会
+resultArray[i][11] = Number(resultArray[i][3]) * Number(sougakuratio2); //２次会
+resultArray[i][12] = Number(resultArray[i][3]) * Number(sougakuratio3); //３次会
+}else{ //ご寄付され、何らかの会に出席された方
+resultArray[i][10] = resultArray[i][7] + (resultArray[i][3]-gokifunashisum) * Number(sougakuratio1);//１次会
+resultArray[i][11] = resultArray[i][8] + (resultArray[i][3]-gokifunashisum) * Number(sougakuratio2);//２次会
+resultArray[i][12] = resultArray[i][9] + (resultArray[i][3]-gokifunashisum) * Number(sougakuratio3);//３次会
+}
+//ご寄付額がご寄付なしの場合の精算額未満の場合は、参加した会のうち１次会から順に充当していく。
+}else if(resultArray[i][3] < resultArray[i][7]){ //ご寄付額が１次会を賄えない場合
+resultArray[i][10] = resultArray[i][3];
+resultArray[i][11] = 0;
+resultArray[i][12] = 0;
+}else if(resultArray[i][7] < resultArray[i][3] && resultArray[i][3] < resultArray[i][7] + resultArray[i][8] ){ //ご寄付額が１次会は賄えて２次会は賄えない場合
+resultArray[i][10] = resultArray[i][7];
+resultArray[i][11] = resultArray[i][3] - resultArray[i][7];
+resultArray[i][12] = 0;
+}else if(resultArray[i][7] + resultArray[i][8] <resultArray[i][3] && resultArray[i][3] < gokifunashisum){ //ご寄付額が２次会は賄えて３次会は賄えない場合
+resultArray[i][10] = resultArray[i][7];
+resultArray[i][11] = resultArray[i][8];
+resultArray[i][12] = resultArray[i][3] - resultArray[i][7] - resultArray[i][8];
+}
+
+}
+//ご寄付額を四捨五入して丸める。
+for (let i = 0; i < resultArray.length; i++) {
+resultArray[i][10] = Round1(resultArray[i][10]);
+resultArray[i][11] = Round1(resultArray[i][11]);
+resultArray[i][12] = Round1(resultArray[i][12]);
+}
+//分配したご寄付が四捨五入の関係で合計値が実際のご寄付額と一致しない場合に備え、１次会のご寄付額を、実ご寄付額から２、３次会ご寄付額を引いたものにする。
+for (let i = 0; i < resultArray.length; i++) {
+resultArray[i][10] = resultArray[i][3] - resultArray[i][11] - resultArray[i][12]; }
+
+//ご寄付の総和を求める
+var gokifusum1 = 0;
+var gokifusum2 = 0;
+var gokifusum3 = 0;
+for (let i = 0; i < resultArray.length; i++) {
+gokifusum1 += resultArray[i][10];
+gokifusum2 += resultArray[i][11];
+gokifusum3 += resultArray[i][12];
+}
+
+//分配したご寄付（１０～１２）が、ご寄付なしの仮精算（７～９）以上の場合、その会の精算額を０に設定。大きく超えたご寄付額exgokifu1~3は、ご寄付がなかった方の精算額から傾斜割合で引く。
+//それ以外の場合、ご寄付なしの場合の精算額から分配したご寄付を引いたものをその会の精算額に設定。それぞれ精算額最終にセット。配列１３～１５に格納
+var exgokifu1 = 0;
+var exgokifu2 = 0;
+var exgokifu3 = 0;
+for (let i = 0; i < resultArray.length; i++) {
+//一次会
+if(resultArray[i][10] >= resultArray[i][7]){
+resultArray[i][13] = 0;
+exgokifu1 += Number(resultArray[i][10])-Number(resultArray[i][7]);
+}else{
+resultArray[i][13] = resultArray[i][7] - resultArray[i][10];
+}
+//二次会
+if(resultArray[i][11] >= resultArray[i][8]){
+resultArray[i][14] = 0;
+exgokifu2 += Number(resultArray[i][11])-Number(resultArray[i][8]);
+}else{
+resultArray[i][14] = resultArray[i][8] - resultArray[i][11];
+}
+//三次会
+if(resultArray[i][12] >= resultArray[i][9]){
+resultArray[i][15] = 0;
+exgokifu3 += Number(resultArray[i][12])-Number(resultArray[i][9]);
+}else{
+resultArray[i][15] = resultArray[i][9] - resultArray[i][12];
+}
+}
+console.table(resultArray)
+console.log(exgokifu1)
+console.log(exgokifu2)
+console.log(exgokifu3)
+//精算額が１円以上の人（ご寄付した人を含む）の傾斜合計を求める。
+var seisanarikeishasum1 = 0;
+var seisanarikeishasum2 = 0;
+var seisanarikeishasum3 = 0;
+for (let i = 0; i < resultArray.length; i++) {
+if(resultArray[i][13] > 0){
+seisanarikeishasum1 += Number(resultArray[i][1])*Number(resultArray[i][4]);
+}
+if(resultArray[i][14] > 0){
+seisanarikeishasum2 += Number(resultArray[i][1])*Number(resultArray[i][5]);
+}
+if(resultArray[i][15] > 0){
+seisanarikeishasum3 += Number(resultArray[i][1])*Number(resultArray[i][6]);
+}
+}
+//精算額がある人から、ご寄付の余剰を傾斜割合で引く
+//引きすぎて負の数になったら、余剰２として蓄積
+var exgokifu1_2 = 0;
+var exgokifu2_2 = 0;
+var exgokifu3_2 = 0;
+for (let i = 0; i < resultArray.length; i++) {
+if(resultArray[i][13] > 0){
+if(resultArray[i][13] >= exgokifu1*(resultArray[i][1])/seisanarikeishasum1){
+resultArray[i][13] -= exgokifu1*(resultArray[i][1])/seisanarikeishasum1;
+}else{
+exgokifu1_2 += exgokifu1*(resultArray[i][1])/seisanarikeishasum1 - resultArray[i][13];
+resultArray[i][13] = 0;
+}
+if(resultArray[i][14] > exgokifu2*(resultArray[i][1])/seisanarikeishasum2){
+resultArray[i][14] -= exgokifu2*(resultArray[i][1])/seisanarikeishasum2;
+}else{
+exgokifu2_2 += exgokifu2*(resultArray[i][1])/seisanarikeishasum2 - resultArray[i][14];
+resultArray[i][14] = 0;
+}
+if(resultArray[i][15] > exgokifu3*(resultArray[i][1])/seisanarikeishasum3){
+resultArray[i][15] -= exgokifu3*(resultArray[i][1])/seisanarikeishasum3;
+}else{
+exgokifu3_2 += exgokifu3*(resultArray[i][1])/seisanarikeishasum3 - resultArray[i][15];
+resultArray[i][15] = 0;
+}
+}
+}
+console.table(resultArray)
+console.log(exgokifu1_2)
+console.log(exgokifu2_2)
+console.log(exgokifu3_2)
+if(exgokifu1_2 > 0 || exgokifu2_2 > 0 || exgokifu3_2 > 0){
+//余剰２は、精算額の割合に応じて分配。ご寄付が精算額合計より多い場合は警告
+//ご寄付の余剰を分配するため、精算額が１円以上の人の精算額の割合を求めて分配する。
+//精算額が１円以上の人（ご寄付した人を含む）の精算額合計を求める。
+var seisangakusum1 = 0;
+var seisangakusum2 = 0;
+var seisangakusum3 = 0;
+for (let i = 0; i < resultArray.length; i++) {
+if(resultArray[i][13] > 0){
+seisangakusum1 += Number(resultArray[i][13]);
+}
+if(resultArray[i][14] > 0){
+seisangakusum2 += Number(resultArray[i][14]);
+}
+if(resultArray[i][15] > 0){
+seisangakusum3 += Number(resultArray[i][15]);
+}
+}
+if(exgokifu1_2 > seisangakusum1 || exgokifu2_2 > seisangakusum2 || exgokifu3_2 > seisangakusum3){
+alert("ご寄付が多すぎるため、各人の精算額がゼロになり、ご寄付が余ります。");
+}
+//精算額がある人から、ご寄付の余剰を傾斜割合で引く
+for (let i = 0; i < resultArray.length; i++) {
+if(resultArray[i][13] > 0){
+resultArray[i][13] -= exgokifu1_2*(resultArray[i][13])/seisangakusum1;
+}
+if(resultArray[i][14] > 0){
+resultArray[i][14] -= exgokifu2_2*(resultArray[i][14])/seisangakusum2;
+}
+if(resultArray[i][15] > 0){
+resultArray[i][15] -= exgokifu3_2*(resultArray[i][15])/seisangakusum3;
+}
+}
+}
+console.table(resultArray)
+//１００円単位（１６～１８）、５００円単位（１９～２１）、１０００円単位（２２～２４）で丸める。
+for (let i = 0; i < resultArray.length; i++) {
+//１円単位
+resultArray[i][13] = Round1(resultArray[i][13]);
+resultArray[i][14] = Round1(resultArray[i][14]);
+resultArray[i][15] = Round1(resultArray[i][15]);
+//１００円単位
+resultArray[i][16] = Round100(resultArray[i][13]);
+resultArray[i][17] = Round100(resultArray[i][14]);
+resultArray[i][18] = Round100(resultArray[i][15]);
+//５００円単位
+resultArray[i][19] = Round500(resultArray[i][13]);
+resultArray[i][20] = Round500(resultArray[i][14]);
+resultArray[i][21] = Round500(resultArray[i][15]);
+//１０００円単位
+resultArray[i][22] = Round1000(resultArray[i][13]);
+resultArray[i][23] = Round1000(resultArray[i][14]);
+resultArray[i][24] = Round1000(resultArray[i][15]);
+}
+
+//丸めた後の各々の精算額の総和を求める。その総和と真の総額との差を、幹事（端数担当）に集める。
+var R1sum1 = 0;
+var R1sum2 = 0;
+var R1sum3 = 0;
+var R100sum1 = 0;
+var R100sum2 = 0;
+var R100sum3 = 0;
+var R500sum1 = 0;
+var R500sum2 = 0;
+var R500sum3 = 0;
+var R1000sum1 = 0;
+var R1000sum2 = 0;
+var R1000sum3 = 0;
+
+for (let i = 0; i < resultArray.length; i++) {
+R1sum1 += resultArray[i][13] + resultArray[i][10];
+R1sum2 += resultArray[i][14] + resultArray[i][11];
+R1sum3 += resultArray[i][15] + resultArray[i][12];
+R100sum1 += resultArray[i][16] + resultArray[i][10];
+R100sum2 += resultArray[i][17] + resultArray[i][11];
+R100sum3 += resultArray[i][18] + resultArray[i][12];
+R500sum1 += resultArray[i][19] + resultArray[i][10];
+R500sum2 += resultArray[i][20] + resultArray[i][11];
+R500sum3 += resultArray[i][21] + resultArray[i][12];
+R1000sum1 += resultArray[i][22] + resultArray[i][10];
+R1000sum2 += resultArray[i][23] + resultArray[i][11];
+R1000sum3 += resultArray[i][24] + resultArray[i][12];
+}
+
+//精算額の総和とご寄付額の総和を総額から引いた余りを幹事（端数担当）に集約
+for (let i = 0; i < resultArray.length; i++) {
+if(resultArray[i][2] == 1){
+//幹事（端数担当）がいずれの会にも出席していなかったらバグるので警告
+if(resultArray[i][4]+resultArray[i][5]+resultArray[i][6]==0){
+alert("幹事(端数)は、必ず全ての会に出席するようにしてください。");//昭和ですね。
+return;
+}
+//１円単位
+resultArray[i][13] += sougaku1 - R1sum1;
+resultArray[i][14] += sougaku2 - R1sum2;
+resultArray[i][15] += sougaku3 - R1sum3;
+//１００円単位
+resultArray[i][16] += sougaku1 - R100sum1;
+resultArray[i][17] += sougaku2 - R100sum2;
+resultArray[i][18] += sougaku3 - R100sum3;
+//５００円単位
+resultArray[i][19] += sougaku1 - R500sum1;
+resultArray[i][20] += sougaku2 - R500sum2;
+resultArray[i][21] += sougaku3 - R500sum3;
+//１０００円単位
+resultArray[i][22] += sougaku1 - R1000sum1;
+resultArray[i][23] += sougaku2 - R1000sum2;
+resultArray[i][24] += sougaku3 - R1000sum3;
+}
+}
+//ご寄付額の総額を配列の新しい行に追加
+resultArray.push(["ご寄付","","","","1","","","","","","","","",gokifusum1,gokifusum2,gokifusum3,gokifusum1,gokifusum2,gokifusum3,gokifusum1,gokifusum2,gokifusum3,gokifusum1,gokifusum2,gokifusum3]);//最終行
+resultArray.push(["総額","","","","1","","","","","","","","",sougaku1,sougaku2,sougaku3,sougaku1,sougaku2,sougaku3,sougaku1,sougaku2,sougaku3,sougaku1,sougaku2,sougaku3]);//最終行
+resultArray.unshift(["","","","","1","","","","","","","","","１次会","２次会","３次会","１次会","２次会","３次会","１次会","２次会","３次会","１次会","２次会","３次会"]);//先頭行
+
+//0:名前 1:傾斜 2:端数担当 3:ご寄付額 4:１次会参加 5:２次会参加 6:３次会参加
+//7~9 :ご寄付なしの精算額
+//10~12 :ご寄付分配額
+//13~15 :１円単位の丸め
+//16~18 :１００円単位の丸め
+//19~21 :５００円単位の丸め
+//22~24 :１０００円単位の丸め
+
+//１円単位の列だけ抽出したtableを作成
+//総額を示す行を追加
+resultArray[0][25] = "計";
+for (let i = 1; i < resultArray.length; i++) {
+resultArray[i][25] = (Number(resultArray[i][13]) + Number(resultArray[i][14]) + Number(resultArray[i][15]));
+}
+//tableを作成
+var container = document.getElementById("table1");
+container.innerHTML = "";
+container.appendChild(generateTable(resultArray,"R1"));
+//tableのうち不要な列を削除する
+var indexarr = [24,23,22,21,20,19,18,17,16,12,11,10,9,8,7,6,5,4,3,2,1];//おかしくなるので降順に並べる
+deleteColumn("R1",indexarr);
+
+//１００円単位の列だけ抽出した配列を作成
+//総額を示す行を追加
+resultArray[0][25] = "計";
+for (let i = 1; i < resultArray.length; i++) {
+resultArray[i][25] = (Number(resultArray[i][16]) + Number(resultArray[i][17]) + Number(resultArray[i][18]));
+}
+//tableを作成
+var container = document.getElementById("table100");
+container.innerHTML = "";
+container.appendChild(generateTable(resultArray,"R100"));
+//tableのうち不要な列を削除する
+var indexarr = [24,23,22,21,20,19,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1];//おかしくなるので降順に並べる
+deleteColumn("R100",indexarr);
+
+//５００円単位の列だけ抽出した配列を作成
+//総額を示す行を追加
+resultArray[0][25] = "計";
+for (let i = 1; i < resultArray.length; i++) {
+resultArray[i][25] = (Number(resultArray[i][19]) + Number(resultArray[i][20]) + Number(resultArray[i][21]));
+}
+//tableを作成
+var container = document.getElementById("table500");
+container.innerHTML = "";
+container.appendChild(generateTable(resultArray,"R500"));
+//tableのうち不要な列を削除する
+var indexarr = [24,23,22,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1];//おかしくなるので降順に並べる
+deleteColumn("R500",indexarr);
+
+//１０００円単位の列だけ抽出した配列を作成
+//総額を示す行を追加
+resultArray[0][25] = "計";
+for (let i = 1; i < resultArray.length; i++) {
+resultArray[i][25] = (Number(resultArray[i][22]) + Number(resultArray[i][23]) + Number(resultArray[i][24]));
+}
+//tableを作成
+var container = document.getElementById("table1000");
+container.innerHTML = "";
+container.appendChild(generateTable(resultArray,"R1000"));
+//tableのうち不要な列を削除する
+var indexarr = [21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1];//おかしくなるので降順に並べる
+deleteColumn("R1000",indexarr);
+
+//総額が０である会は開催されていないので、行ごと削除する。１次会のみの場合は総額も削除
+if(sougaku3 == "" && sougaku2 > 0){
+indexarr=[3];
+deleteColumn("R1",indexarr);
+deleteColumn("R100",indexarr);
+deleteColumn("R500",indexarr);
+deleteColumn("R1000",indexarr);
+}else if(sougaku3 == "" && sougaku2 == ""){
+indexarr=[4,3,2]
+deleteColumn("R1",indexarr);
+deleteColumn("R100",indexarr);
+deleteColumn("R500",indexarr);
+deleteColumn("R1000",indexarr);
+}
+//ご寄付がないときはご寄付の行を削除
+if(gokifusum1 == 0){
+document.getElementById("R1").deleteRow(resultArray.length-2);
+document.getElementById("R100").deleteRow(resultArray.length-2);
+document.getElementById("R500").deleteRow(resultArray.length-2);
+document.getElementById("R1000").deleteRow(resultArray.length-2);
+}
+}
+
+//二次元配列dataからテーブルを作成して返す関数
+function generateTable(data,idname) {
+var table = document.createElement("table");
+var tbody = document.createElement("tbody");
+
+for (var i = 0; i < data.length; i++) {
+if(data[i][4] + data[i][5] + data[i][6] > 0){
+var row = document.createElement("tr");
+
+for (var j = 0; j < data[i].length; j++) {
+var cell = document.createElement("td");
+cell.textContent = data[i][j];
+row.appendChild(cell);
+}
+tbody.appendChild(row);
+}
+}
+table.appendChild(tbody);
+table.id = idname
+return table;
+}
+function Round1(x){
+return(Math.round(x));
+}
+function Round100(x){
+return(Math.round(x*1/100)*100/1);
+}
+function Round500(x){
+return(Math.round(x*2/1000)*1000/2);
+}
+function Round1000(x){
+return(Math.round(x*1/1000)*1000/1);
+}
+function deleteColumn(idname,indexarr) {
+let table = document.getElementById(idname);
+let rowCount = table.rows.length;
+for (let i = 0; i < indexarr.length; i++) {
+for (var j = 0; j < rowCount; j++) {
+table.rows[j].deleteCell(indexarr[i]);
+}
+}
+}
+</script>
+</body>
+</html>
