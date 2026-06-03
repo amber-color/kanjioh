@@ -603,30 +603,35 @@ function calculate() {
     resultArray[i][Ki] = t;
   }
 
-  // 幹事マイナス警告
+  // 幹事マイナス警告（丸め後の精算額 または 丸め前のネット額がマイナスなら警告）
   var warnLines = [];
   for (var k = 0; k < N; k++) {
+    if (!resultArray[kanjiI][attIdx(k)]) continue;
+    var kNet = resultArray[kanjiI][netIdx(k, N)];
     var kAmt = resultArray[kanjiI][roundedIdx(k, N)];
-    if (kAmt < 0) warnLines.push(partyLabel(k + 1) + '：' + kAmt + '円');
+    if (kAmt < 0 || kNet < 0) warnLines.push(partyLabel(k + 1) + '：' + kAmt + '円');
   }
 
   // 同傾斜・非幹事の精算額不一致チェック
   var slopeMismatch = [];
-  for (var k = 0; k < N; k++) {
-    var slopeGroups = {};
-    for (var i = 0; i < resultArray.length; i++) {
-      if (i === kanjiI || !resultArray[i][attIdx(k)]) continue;
-      var sl = Number(resultArray[i][1]).toFixed(1);
-      if (!slopeGroups[sl]) slopeGroups[sl] = [];
-      slopeGroups[sl].push(resultArray[i][roundedIdx(k, N)]);
+  try {
+    for (var k = 0; k < N; k++) {
+      var slopeGroups = {};
+      for (var i = 0; i < resultArray.length; i++) {
+        if (i === kanjiI || !resultArray[i][attIdx(k)]) continue;
+        var sl = Number(resultArray[i][1]).toFixed(1);
+        if (!slopeGroups[sl]) slopeGroups[sl] = [];
+        slopeGroups[sl].push(resultArray[i][roundedIdx(k, N)]);
+      }
+      for (var sl in slopeGroups) {
+        if (!Object.prototype.hasOwnProperty.call(slopeGroups, sl)) continue;
+        var amts = slopeGroups[sl];
+        var allSame = true;
+        for (var j = 1; j < amts.length; j++) { if (amts[j] !== amts[0]) { allSame = false; break; } }
+        if (!allSame) slopeMismatch.push(partyLabel(k + 1) + ' 傾斜' + sl);
+      }
     }
-    for (var sl in slopeGroups) {
-      var amts = slopeGroups[sl];
-      var allSame = true;
-      for (var j = 1; j < amts.length; j++) { if (amts[j] !== amts[0]) { allSame = false; break; } }
-      if (!allSame) slopeMismatch.push(partyLabel(k + 1) + ' 傾斜' + sl);
-    }
-  }
+  } catch(e) { console.error('同傾斜チェックエラー:', e); }
 
   var msgParts = [];
   if (warnLines.length > 0) {
@@ -636,12 +641,17 @@ function calculate() {
     msgParts.push('<b>同傾斜の非幹事で精算額が異なります</b><br>' + slopeMismatch.join('<br>') + '<br>丸め単位を小さくするか、傾斜を変えてください。');
   }
   if (msgParts.length > 0) {
-    document.getElementById('warnModalTitle').textContent =
-      (warnLines.length > 0 && slopeMismatch.length > 0) ? '⚠️ 計算結果に注意が必要です' :
-      warnLines.length > 0 ? '⚠️ 幹事の精算額がマイナスになっています' :
-      '⚠️ 同傾斜の精算額が一致していません';
-    document.getElementById('warnModalMsg').innerHTML = msgParts.join('<br><br>');
-    document.getElementById('warnModal').classList.add('visible');
+    var titleEl = document.getElementById('warnModalTitle');
+    var msgEl   = document.getElementById('warnModalMsg');
+    var modalEl = document.getElementById('warnModal');
+    if (titleEl && msgEl && modalEl) {
+      titleEl.textContent =
+        (warnLines.length > 0 && slopeMismatch.length > 0) ? '⚠️ 計算結果に注意が必要です' :
+        warnLines.length > 0 ? '⚠️ 幹事の精算額がマイナスになっています' :
+        '⚠️ 同傾斜の精算額が一致していません';
+      msgEl.innerHTML = msgParts.join('<br><br>');
+      modalEl.classList.add('visible');
+    }
   }
 
   // フッター・ヘッダー行
