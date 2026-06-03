@@ -466,8 +466,6 @@ function calculate() {
   if (!attendedAny) { alert("幹事(端数)は少なくとも1つの会に出席するようにしてください。"); return; }
 
   for (var k = 0; k < N; k++) {
-    if (sougaku[k] === 0) continue;
-
     // Step 1: Math.round 基本丸め
     for (var i = 0; i < resultArray.length; i++) {
       resultArray[i][roundedIdx(k, N)] = Math.round(resultArray[i][netIdx(k, N)] / unit) * unit;
