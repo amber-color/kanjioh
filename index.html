@@ -772,6 +772,7 @@ function steepSlope() {
     input.value = val > 0 ? Math.round(Math.pow(val, 1.25) * 100) / 100 : 0;
     formatSlope(input);
   }
+  calculate();
 }
 function gentleSlope() {
   var rows = document.getElementById("participantTable").getElementsByTagName("tbody")[0].getElementsByTagName("tr");
@@ -781,6 +782,7 @@ function gentleSlope() {
     input.value = val > 0 ? Math.round(Math.pow(val, 0.8) * 100) / 100 : 0;
     formatSlope(input);
   }
+  calculate();
 }
 
 function formatSlope(input) {
