@@ -210,6 +210,20 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
   font-size: 0.875rem; border: 2px dashed var(--border);
 }
 
+/* Modal */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.4); z-index: 500; align-items: center; justify-content: center;
+}
+.modal-overlay.visible { display: flex; }
+.modal-box {
+  background: white; border-radius: 12px; padding: 24px 28px;
+  max-width: 360px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+.modal-box h2 { font-size: 1rem; font-weight: 700; color: #dc2626; margin-bottom: 10px; }
+.modal-box p  { font-size: 0.875rem; line-height: 1.7; color: var(--text); }
+.modal-close  { margin-top: 18px; width: 100%; }
+
 /* Mobile: テーブルを画面幅に収める */
 @media (max-width: 600px) {
   #participantTable { table-layout: fixed; width: 100%; }
@@ -579,6 +593,19 @@ function calculate() {
     resultArray[i][Ki] = t;
   }
 
+  // 幹事マイナス警告
+  var warnLines = [];
+  for (var k = 0; k < N; k++) {
+    var amt = resultArray[kanjiI][roundedIdx(k, N)];
+    if (amt < 0) warnLines.push(partyLabel(k + 1) + '：' + amt + '円');
+  }
+  if (warnLines.length > 0) {
+    document.getElementById('warnModalMsg').innerHTML =
+      '以下の次会で幹事の精算額がマイナスになりました。<br>' +
+      '傾斜や丸め単位を調整してください。<br><br>' + warnLines.join('<br>');
+    document.getElementById('warnModal').classList.add('visible');
+  }
+
   // フッター・ヘッダー行
   var makeRow = function(name, vals, totalVal) {
     var row = new Array(Ki + 1).fill("");
@@ -808,5 +835,13 @@ document.getElementById('participantTable').addEventListener('blur', function(e)
 // ページロード時の初期値をフォーマット
 document.querySelectorAll('input[name="slope"]').forEach(function(inp) { formatSlope(inp); });
 </script>
+
+<div class="modal-overlay" id="warnModal">
+  <div class="modal-box">
+    <h2>⚠️ 幹事の精算額がマイナスになっています</h2>
+    <p id="warnModalMsg"></p>
+    <button class="btn-calc modal-close" onclick="document.getElementById('warnModal').classList.remove('visible')">閉じる</button>
+  </div>
+</div>
 </body>
 </html>
