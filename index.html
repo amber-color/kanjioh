@@ -410,7 +410,7 @@ function calculate() {
 
   // 幹事チェック
   var isSelected = Array.from(document.querySelectorAll('input[name="fraction"]')).some(r => r.checked);
-  if (!isSelected) { alert('幹事（端数）を１人選択してください。'); return; }
+  if (!isSelected) { showError('幹事（端数）を１人選択してください。'); return; }
 
   // 参加者データ読み込み
   var rows = document.getElementById("participantTable").getElementsByTagName("tbody")[0].getElementsByTagName("tr");
@@ -449,7 +449,7 @@ function calculate() {
     for (var k = 0; k < N; k++) {
       if (keishasum[k] == 0) {
         resultArray[i][shareIdx(k, N)] = 0;
-        if (sougaku[k] > 0) { alert(partyLabel(k+1) + "は総額が記入されていますが、参加者がいません。"); return; }
+        if (sougaku[k] > 0) { showError(partyLabel(k+1) + 'は総額が記入されていますが、参加者がいません。'); return; }
       } else {
         resultArray[i][shareIdx(k, N)] = sougaku[k] * Number(resultArray[i][1]) * Number(resultArray[i][attIdx(k)]) / keishasum[k];
       }
@@ -501,6 +501,7 @@ function calculate() {
   console.table(resultArray); console.log("exgokifu2:", exgokifu2);
 
   // 超過寄付の再配分（2回目：精算額割合）
+  var gokifuWarn = [];
   if (exgokifu2.some(v => v > 0)) {
     var seisangakusum = new Array(N).fill(0);
     for (var i = 0; i < resultArray.length; i++) {
@@ -509,7 +510,7 @@ function calculate() {
       }
     }
     for (var k = 0; k < N; k++) {
-      if (exgokifu2[k] > seisangakusum[k]) alert("ご寄付が多すぎるため" + partyLabel(k+1) + "の精算額がゼロになり余ります。");
+      if (exgokifu2[k] > seisangakusum[k]) gokifuWarn.push(partyLabel(k+1) + 'の精算額がゼロになり余ります');
     }
     for (var i = 0; i < resultArray.length; i++) {
       for (var k = 0; k < N; k++) {
@@ -536,7 +537,7 @@ function calculate() {
   }
   var attendedAny = false;
   for (var k = 0; k < N; k++) { if (resultArray[kanjiI][attIdx(k)]) attendedAny = true; }
-  if (!attendedAny) { alert("幹事(端数)は少なくとも1つの会に出席するようにしてください。"); return; }
+  if (!attendedAny) { showError('幹事(端数)は少なくとも1つの会に出席するようにしてください。'); return; }
 
   for (var k = 0; k < N; k++) {
     // Step 1: Math.round 基本丸め
@@ -614,7 +615,10 @@ function calculate() {
 
   // 同傾斜・非幹事の精算額不一致チェック
   var slopeMismatch = [];
+  // 幹事が同傾斜の非幹事より少ないチェック
+  var kanjiSlopeLow = [];
   try {
+    var kanjiSl = Number(resultArray[kanjiI][1]).toFixed(1);
     for (var k = 0; k < N; k++) {
       var slopeGroups = {};
       for (var i = 0; i < resultArray.length; i++) {
@@ -630,6 +634,12 @@ function calculate() {
         for (var j = 1; j < amts.length; j++) { if (amts[j] !== amts[0]) { allSame = false; break; } }
         if (!allSame) slopeMismatch.push(partyLabel(k + 1) + ' 傾斜' + sl);
       }
+      // 幹事が出席しており、同傾斜の非幹事がいる場合に比較
+      if (resultArray[kanjiI][attIdx(k)] && slopeGroups[kanjiSl] && slopeGroups[kanjiSl].length > 0) {
+        var kRounded = resultArray[kanjiI][roundedIdx(k, N)];
+        var peerMin = slopeGroups[kanjiSl].reduce(function(a, b) { return a < b ? a : b; });
+        if (kRounded < peerMin) kanjiSlopeLow.push(partyLabel(k + 1));
+      }
     }
   } catch(e) { console.error('同傾斜チェックエラー:', e); }
 
@@ -637,18 +647,26 @@ function calculate() {
   if (warnLines.length > 0) {
     msgParts.push('<b>幹事の精算額がマイナス</b><br>' + warnLines.join('<br>') + '<br>傾斜や丸め単位を調整してください。');
   }
+  if (kanjiSlopeLow.length > 0) {
+    msgParts.push('<b>幹事の精算額が同傾斜の参加者より少なくなっています</b><br>' + kanjiSlopeLow.join('、') + '<br>丸め単位を小さくすることで解消できる場合があります。');
+  }
   if (slopeMismatch.length > 0) {
     msgParts.push('<b>同傾斜の非幹事で精算額が異なります</b><br>' + slopeMismatch.join('<br>') + '<br>丸め単位を小さくするか、傾斜を変えてください。');
+  }
+  if (gokifuWarn.length > 0) {
+    msgParts.push('<b>ご寄付が多すぎます</b><br>' + gokifuWarn.join('<br>'));
   }
   if (msgParts.length > 0) {
     var titleEl = document.getElementById('warnModalTitle');
     var msgEl   = document.getElementById('warnModalMsg');
     var modalEl = document.getElementById('warnModal');
     if (titleEl && msgEl && modalEl) {
-      titleEl.textContent =
-        (warnLines.length > 0 && slopeMismatch.length > 0) ? '⚠️ 計算結果に注意が必要です' :
-        warnLines.length > 0 ? '⚠️ 幹事の精算額がマイナスになっています' :
-        '⚠️ 同傾斜の精算額が一致していません';
+      var activeTypes = [warnLines, kanjiSlopeLow, slopeMismatch, gokifuWarn].filter(function(a) { return a.length > 0; }).length;
+      titleEl.textContent = activeTypes > 1 ? '⚠️ 計算結果に注意が必要です' :
+        warnLines.length > 0        ? '⚠️ 幹事の精算額がマイナスになっています' :
+        kanjiSlopeLow.length > 0    ? '⚠️ 幹事の精算額が同傾斜の参加者より少なくなっています' :
+        slopeMismatch.length > 0    ? '⚠️ 同傾斜の精算額が一致していません' :
+                                      '⚠️ ご寄付の計算に過剰が発生しています';
       msgEl.innerHTML = msgParts.join('<br><br>');
       modalEl.classList.add('visible');
     }
@@ -822,6 +840,17 @@ function generateTable(data, N, idname) {
   table.appendChild(tbody);
   table.id = idname;
   return table;
+}
+
+function showError(msg) {
+  var titleEl = document.getElementById('warnModalTitle');
+  var msgEl   = document.getElementById('warnModalMsg');
+  var modalEl = document.getElementById('warnModal');
+  if (titleEl && msgEl && modalEl) {
+    titleEl.textContent = '⚠️ 入力を確認してください';
+    msgEl.innerHTML = msg;
+    modalEl.classList.add('visible');
+  }
 }
 
 function Round1(x)    { return Math.round(x); }
