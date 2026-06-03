@@ -141,12 +141,11 @@ tbody tr:hover { background: #f0f4ff; }
 
 /* Donation input */
 .donation-input {
-  width: 100%; border: none; border-bottom: 1.5px solid #cbd5e1;
+  width: 100%; border: none;
   border-radius: 0; background: transparent; padding: 7px 8px;
   font-size: 0.85rem; font-family: inherit; outline: none;
   text-align: right; color: var(--text); display: block;
 }
-.donation-input:focus { border-bottom-color: var(--primary); background: rgba(99,102,241,0.06); }
 .donation-input::-webkit-inner-spin-button,
 .donation-input::-webkit-outer-spin-button { opacity: 0; }
 #participantTable tbody td:has(.donation-input:focus) {
@@ -161,6 +160,12 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
 /* Result table */
 #R tbody tr.row-total td  { background: #f0fdf4; font-weight: 600; color: #15803d; }
 #R tbody tr.row-gokifu td { background: #eff6ff; font-weight: 600; color: #1d4ed8; }
+#R td[contenteditable="true"] { cursor: text; }
+#R td[contenteditable="true"]:focus {
+  outline: none; background: #eef2ff !important;
+  box-shadow: inset 0 0 0 2px var(--primary); position: relative; z-index: 1;
+}
+.result-mismatch { color: #dc2626 !important; background: #fef2f2 !important; }
 
 /* Placeholder */
 .result-placeholder {
@@ -523,6 +528,71 @@ function calculate() {
 
   // 寄付なしならご寄付行削除
   if (gokifusum.reduce((a,b)=>a+b,0) == 0) document.getElementById("R").deleteRow(resultArray.length - 2);
+
+  setupResultEditing(sougaku, lastActive);
+}
+
+function setupResultEditing(sougakuVals, lastActive) {
+  var table = document.getElementById("R");
+  if (!table) return;
+  var tbody = table.querySelector("tbody");
+  var keiCol = lastActive >= 2 ? lastActive + 1 : -1;
+
+  var rows = tbody.rows;
+  for (var i = 0; i < rows.length; i++) {
+    var row = rows[i];
+    if (row.classList.contains("row-total") || row.classList.contains("row-gokifu")) continue;
+    for (var c = 1; c <= lastActive; c++) {
+      if (!row.cells[c]) continue;
+      row.cells[c].contentEditable = "true";
+      (function(cell) {
+        cell.addEventListener("keydown", function(e) {
+          if (e.key === "Enter") { e.preventDefault(); cell.blur(); }
+        });
+        cell.addEventListener("blur", function() {
+          var n = Number(cell.textContent.trim()) || 0;
+          cell.textContent = n;
+        });
+      })(row.cells[c]);
+    }
+  }
+
+  tbody.addEventListener("input", function() {
+    recalcResult(tbody, sougakuVals, lastActive, keiCol);
+  });
+}
+
+function recalcResult(tbody, sougakuVals, lastActive, keiCol) {
+  var rows = tbody.rows;
+  var totalRow = null;
+  for (var i = 0; i < rows.length; i++) {
+    if (rows[i].classList.contains("row-total")) totalRow = rows[i];
+  }
+
+  // 各参加者行の計を再計算
+  if (keiCol > 0) {
+    for (var i = 0; i < rows.length; i++) {
+      var row = rows[i];
+      if (row.classList.contains("row-total") || row.classList.contains("row-gokifu")) continue;
+      var rowSum = 0;
+      for (var c = 1; c <= lastActive; c++) {
+        rowSum += Number(row.cells[c] ? row.cells[c].textContent.trim() : 0) || 0;
+      }
+      if (row.cells[keiCol]) row.cells[keiCol].textContent = rowSum;
+    }
+  }
+
+  // 列合計（参加者 + ご寄付）と元の総額を比較し、不一致なら赤くする
+  for (var c = 1; c <= lastActive; c++) {
+    var colSum = 0;
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i].classList.contains("row-total")) continue;
+      colSum += Number(rows[i].cells[c] ? rows[i].cells[c].textContent.trim() : 0) || 0;
+    }
+    if (!totalRow || !totalRow.cells[c]) continue;
+    var isMatch = colSum === sougakuVals[c - 1];
+    totalRow.cells[c].classList.toggle("result-mismatch", !isMatch);
+  }
 }
 
 function generateTable(data, N, idname) {
