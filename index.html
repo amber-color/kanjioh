@@ -166,19 +166,20 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
   box-shadow: inset 0 0 0 2px var(--primary); position: relative; z-index: 1;
 }
 .result-mismatch { color: #dc2626 !important; background: #fef2f2 !important; }
-#result-tooltip {
-  display: none; position: fixed; z-index: 1000;
-  background: #dc2626; color: white;
-  padding: 6px 12px; border-radius: 6px;
-  font-size: 0.78rem; font-weight: 600;
-  white-space: nowrap; pointer-events: none;
-  transform: translateX(-50%);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+#resultMessages:not(:empty) {
+  padding: 8px 16px 12px; display: flex; flex-direction: column; gap: 6px;
+  border-top: 1px solid var(--border);
 }
-#result-tooltip::before {
-  content: ''; position: absolute;
-  bottom: 100%; left: 50%; transform: translateX(-50%);
-  border: 6px solid transparent; border-bottom-color: #dc2626;
+.mismatch-msg {
+  position: relative; background: #fef2f2; border: 1px solid #fca5a5;
+  border-radius: 8px; color: #dc2626; font-size: 0.8rem; font-weight: 600;
+  padding: 7px 12px; padding-left: 32px;
+}
+.mismatch-msg::before {
+  content: '!'; position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  width: 16px; height: 16px; background: #dc2626; color: white;
+  border-radius: 50%; font-size: 0.7rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; text-align: center; line-height: 16px;
 }
 
 /* Placeholder */
@@ -261,6 +262,7 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
   <div class="output-pane">
     <div class="result-card" id="resultArea" style="display:none">
       <div id="resultTable"></div>
+      <div id="resultMessages"></div>
     </div>
     <div id="resultPlaceholder" class="result-placeholder">
       計算ボタンを押すと精算額が表示されます
@@ -574,40 +576,6 @@ function setupResultEditing(sougakuVals, lastActive) {
   tbody.addEventListener("input", function() {
     recalcResult(tbody, sougakuVals, lastActive, keiCol);
   });
-
-  // mismatch 吹き出しツールチップ
-  var tooltip = document.getElementById("result-tooltip");
-  if (!tooltip) {
-    tooltip = document.createElement("div");
-    tooltip.id = "result-tooltip";
-    document.body.appendChild(tooltip);
-  }
-  var totalRow = null;
-  for (var i = 0; i < rows.length; i++) {
-    if (rows[i].classList.contains("row-total")) { totalRow = rows[i]; break; }
-  }
-  if (totalRow) {
-    totalRow.addEventListener("mouseover", function(e) {
-      var cell = e.target;
-      while (cell && cell.tagName !== "TD") cell = cell.parentElement;
-      if (cell && cell.classList.contains("result-mismatch") && cell.dataset.diff !== undefined) {
-        var diff = Number(cell.dataset.diff);
-        var msg = diff < 0
-          ? "入力された総額より " + Math.abs(diff).toLocaleString() + " 円少ないです"
-          : "入力された総額より " + diff.toLocaleString() + " 円多いです";
-        var rect = cell.getBoundingClientRect();
-        tooltip.textContent = msg;
-        tooltip.style.display = "block";
-        tooltip.style.left = (rect.left + rect.width / 2) + "px";
-        tooltip.style.top = (rect.bottom + 8) + "px";
-      } else {
-        tooltip.style.display = "none";
-      }
-    });
-    totalRow.addEventListener("mouseleave", function() {
-      tooltip.style.display = "none";
-    });
-  }
 }
 
 function recalcResult(tbody, sougakuVals, lastActive, keiCol) {
@@ -643,6 +611,24 @@ function recalcResult(tbody, sougakuVals, lastActive, keiCol) {
     totalRow.cells[c].classList.toggle("result-mismatch", !isMatch);
     if (!isMatch) totalRow.cells[c].dataset.diff = colSum - original;
     else delete totalRow.cells[c].dataset.diff;
+  }
+
+  // メッセージ欄を更新
+  var msgDiv = document.getElementById("resultMessages");
+  if (msgDiv) {
+    var header = document.getElementById("R") ? document.getElementById("R").querySelector("thead tr") : null;
+    var msgs = [];
+    for (var c = 1; c <= lastActive; c++) {
+      if (!totalRow || !totalRow.cells[c]) continue;
+      if (!totalRow.cells[c].classList.contains("result-mismatch")) continue;
+      var diff = Number(totalRow.cells[c].dataset.diff);
+      var label = header && header.cells[c] ? header.cells[c].textContent.trim() : (c + "次会");
+      var diffText = diff < 0
+        ? Math.abs(diff).toLocaleString() + " 円少ないです"
+        : diff.toLocaleString() + " 円多いです";
+      msgs.push('<div class="mismatch-msg">' + label + '：入力された総額より ' + diffText + '</div>');
+    }
+    msgDiv.innerHTML = msgs.join('');
   }
 }
 
