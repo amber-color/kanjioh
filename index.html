@@ -18,60 +18,30 @@
   --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
   --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -1px rgba(0,0,0,0.04);
 }
-
 * { box-sizing: border-box; margin: 0; padding: 0; }
-
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Yu Gothic', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
+  background: var(--bg); color: var(--text); min-height: 100vh;
 }
 
-/* ── Header ── */
+/* Header */
 .app-header {
   background: linear-gradient(135deg, #3730a3 0%, #4f46e5 100%);
-  color: white;
-  padding: 18px 28px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  color: white; padding: 18px 28px; display: flex; align-items: center; gap: 12px;
   box-shadow: 0 2px 12px rgba(79,70,229,0.3);
 }
 .app-header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.3px; }
 
-/* ── Main ── */
+/* Layout */
 main { max-width: 1400px; margin: 0 auto; padding: 20px 16px; }
+.app-layout { display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start; }
+@media (min-width: 900px) { .app-layout { grid-template-columns: 1fr 1fr; } }
 
-/* ── Responsive 2-column layout ── */
-.app-layout {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-  align-items: start;
-}
-@media (min-width: 900px) {
-  .app-layout { grid-template-columns: 1fr 1fr; }
-}
-
-/* ── Buttons ── */
-.btn-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-  margin-bottom: 16px;
-}
+/* Buttons */
+.btn-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 16px; }
 button {
-  padding: 9px 18px;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  font-family: inherit;
-  line-height: 1;
+  padding: 9px 18px; border: none; border-radius: 8px; font-size: 0.875rem;
+  font-weight: 600; cursor: pointer; transition: all 0.15s ease; font-family: inherit; line-height: 1;
 }
 .btn-add    { background: #ecfdf5; color: #047857; border: 1.5px solid #6ee7b7; }
 .btn-add:hover    { background: #d1fae5; transform: translateY(-1px); }
@@ -81,159 +51,105 @@ button {
 .btn-steep:hover  { background: #ffedd5; transform: translateY(-1px); }
 .btn-gentle { background: #eff6ff; color: #1d4ed8; border: 1.5px solid #93c5fd; }
 .btn-gentle:hover { background: #dbeafe; transform: translateY(-1px); }
-
 .select-unit {
-  padding: 8px 12px;
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  font-family: inherit;
-  background: white;
-  color: var(--text);
-  cursor: pointer;
-  outline: none;
+  padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 8px;
+  font-size: 0.875rem; font-weight: 600; font-family: inherit; background: white;
+  color: var(--text); cursor: pointer; outline: none; height: 36px;
   transition: border-color 0.15s, box-shadow 0.15s;
-  height: 36px;
 }
-.select-unit:focus {
-  border-color: var(--primary-light);
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
-}
+.select-unit:focus { border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
 
-/* ── Details ── */
+/* Details */
 details {
-  background: #f0f9ff;
-  border: 1px solid #bae6fd;
-  border-radius: 8px;
-  padding: 12px 16px;
-  margin-bottom: 16px;
-  font-size: 0.85rem;
-  color: #0c4a6e;
-  line-height: 1.8;
+  background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px;
+  padding: 12px 16px; margin-bottom: 16px; font-size: 0.85rem; color: #0c4a6e; line-height: 1.8;
 }
 details summary {
-  font-weight: 600;
-  cursor: pointer;
-  color: #0369a1;
-  list-style: none;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  user-select: none;
+  font-weight: 600; cursor: pointer; color: #0369a1; list-style: none;
+  display: flex; align-items: center; gap: 6px; user-select: none;
 }
 details summary::before { content: '▶'; font-size: 0.65rem; transition: transform 0.2s; }
 details[open] summary::before { transform: rotate(90deg); }
 
-/* ── Input table card (no padding — table fills edge to edge) ── */
-.table-card {
-  background: var(--surface);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  overflow: hidden;
+/* Table cards — edge-to-edge, no inner padding */
+.table-card, .result-card {
+  background: var(--surface); border-radius: var(--radius);
+  box-shadow: var(--shadow); overflow: hidden;
 }
 .table-wrap { overflow-x: auto; }
 
-/* ── Table base ── */
+/* Table base */
 table { border-collapse: collapse; width: 100%; }
 table, th, td { border: 1px solid var(--border); }
-
 thead th {
-  background: #f8fafc;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  padding: 10px 10px;
-  text-align: center;
-  white-space: nowrap;
+  background: #f8fafc; font-size: 0.78rem; font-weight: 600;
+  color: var(--text-muted); padding: 10px; text-align: center; white-space: nowrap;
 }
-tbody td {
-  padding: 0;           /* removed — inputs fill the cell */
-  text-align: center;
-  font-size: 0.875rem;
-}
+tbody td { padding: 8px 10px; text-align: center; font-size: 0.875rem; }
 tbody tr:nth-child(even) { background: #fafafa; }
 tbody tr:hover { background: #f0f4ff; }
 
-/* ── Excel-style inputs inside tbody td ── */
+/* ── Excel-style: text/number inputs in participant table ── */
+#participantTable tbody td { padding: 0; }
+
 #participantTable tbody td input[type="text"],
-#participantTable tbody td input[type="number"] {
-  border: none;
-  border-radius: 0;
-  background: transparent;
-  width: 100%;
-  padding: 9px 10px;
-  font-size: 0.875rem;
-  font-family: inherit;
-  outline: none;
-  display: block;
-  box-shadow: none;
-  -webkit-appearance: none;
-  appearance: none;
+#participantTable tbody td input[type="number"]:not(.donation-input) {
+  border: none; border-radius: 0; background: transparent;
+  width: 100%; padding: 9px 10px; font-size: 0.875rem;
+  font-family: inherit; outline: none; display: block;
 }
-/* Focus: highlight the cell, not the input */
 #participantTable tbody td:has(input[type="text"]:focus),
-#participantTable tbody td:has(input[type="number"]:focus) {
+#participantTable tbody td:has(input[type="number"]:not(.donation-input):focus) {
   background: #eef2ff !important;
   box-shadow: inset 0 0 0 2px var(--primary);
-  position: relative;
-  z-index: 1;
+  position: relative; z-index: 1;
 }
 
-/* Suppress number input spin buttons for clean look */
-#participantTable input[type="number"]::-webkit-inner-spin-button,
-#participantTable input[type="number"]::-webkit-outer-spin-button { opacity: 0.4; }
+/* Attendance + donation cells */
+#participantTable tbody td:has(input[type="checkbox"]) {
+  padding: 6px 10px; white-space: nowrap;
+}
+#participantTable tbody td:has(input[type="radio"]) { padding: 8px; }
 
-/* Header row inputs (総額) */
+/* Donation inputs — underline style within attendance cells */
+.donation-input {
+  width: 60px; border: none; border-bottom: 1.5px solid #cbd5e1;
+  border-radius: 0; background: transparent; padding: 2px 4px;
+  font-size: 0.8rem; font-family: inherit; outline: none;
+  vertical-align: middle; text-align: right; color: var(--text); margin-left: 5px;
+}
+.donation-input:focus { border-bottom-color: var(--primary); background: rgba(99,102,241,0.06); }
+.donation-input::-webkit-inner-spin-button,
+.donation-input::-webkit-outer-spin-button { opacity: 0; }
+#participantTable tbody td:has(.donation-input:focus) {
+  background: #eef2ff !important;
+  box-shadow: inset 0 0 0 2px var(--primary);
+  position: relative; z-index: 1;
+}
+
+/* Header inputs (総額) */
 #participantTable thead th input[type="text"] {
-  border: 1.5px solid var(--border);
-  border-radius: 5px;
-  background: white;
-  padding: 4px 6px;
-  font-size: 0.8rem;
-  font-family: inherit;
-  outline: none;
-  width: 72px;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  border: 1.5px solid var(--border); border-radius: 5px; background: white;
+  padding: 4px 6px; font-size: 0.8rem; font-family: inherit;
+  outline: none; width: 72px; transition: border-color 0.15s, box-shadow 0.15s;
 }
 #participantTable thead th input[type="text"]:focus {
-  border-color: var(--primary-light);
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+  border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
 }
 
-/* Checkbox / radio cells keep their own padding */
-#participantTable tbody td:has(input[type="checkbox"]),
-#participantTable tbody td:has(input[type="radio"]) {
-  padding: 8px;
-}
-
-input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; }
+input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; vertical-align: middle; }
 input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; }
 
-/* ── Result card ── */
-.result-card {
-  background: var(--surface);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 16px 20px;
-  overflow-x: auto;
-}
-.result-card table { width: auto; }
-.result-card tbody tr:last-child td    { background: #f0fdf4; font-weight: 600; color: #15803d; }
-.result-card tbody tr:nth-last-child(2) td { background: #eff6ff; font-weight: 600; color: #1d4ed8; }
+/* Result table row classes */
+#R tbody tr.row-total td { background: #f0fdf4; font-weight: 600; color: #15803d; }
+#R tbody tr.row-gokifu td { background: #eff6ff; font-weight: 600; color: #1d4ed8; }
 
-/* ── Placeholder (shown before first calculation on PC) ── */
+/* Placeholder */
 .result-placeholder {
-  background: var(--surface);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 48px 24px;
-  text-align: center;
-  color: var(--text-muted);
-  font-size: 0.875rem;
-  border: 2px dashed var(--border);
+  background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 48px 24px; text-align: center; color: var(--text-muted);
+  font-size: 0.875rem; border: 2px dashed var(--border);
 }
-.result-placeholder span { display: block; margin-top: 8px; font-size: 0.78rem; }
 </style>
 </head>
 <body>
@@ -243,20 +159,16 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
 </header>
 
 <main>
-
 <details>
   <summary>使い方</summary>
   ・「参加者追加」ボタンで参加人数分の行を表示させる<br>
-  ・それぞれにお名前、傾斜、ご寄付額、○次会出欠チェックボックスを入力する。幹事の人は幹事のラジオボタンにチェックする。<br>
+  ・それぞれにお名前、傾斜、幹事チェック、○次会出欠チェックボックスを入力する。ご寄付がある場合はチェックボックス横の欄に入力する。<br>
   ・○次会で支払った総額を入力する。<br>
-  ・「計算」ボタンで、精算額の表が下に表示される。<br>
+  ・「計算」ボタンで、精算額の表が右に表示される。<br>
   仕様<br>
-  ・傾斜は、支払総額を分担する比率の整数比。例えば、８の人は４の人の２倍の額を負担する。<br>
+  ・傾斜は、支払総額を分担する比率。例えば、８の人は４の人の２倍の額を負担する。<br>
   ・精算額を四捨五入して丸めたときの端数は、幹事に集まるようにしている。<br>
-  ・ご寄付がある場合、ご寄付を出した方が出席された会にご寄付を配分する。<br>
-  配分割合は、まずご寄付がなかった場合の各人の負担額を計算し、ご寄付額がその人の負担額以上の場合は、<br>
-  その人の負担額をゼロにし、それでも余るご寄付は、総額に応じた割合で分配する。<br>
-  ご寄付額がその人の負担額未満の場合は、カンパしきれない額を精算額として表示する。
+  ・ご寄付はその会の費用に直接充当され、超過分は他の参加者の精算額から傾斜割合で差し引かれる。
 </details>
 
 <div class="btn-row">
@@ -272,20 +184,18 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
 </div>
 
 <div class="app-layout">
-
   <div class="input-pane">
     <div class="table-card">
       <div class="table-wrap">
         <table id="participantTable">
           <thead>
             <tr>
-              <th width="80px">お名前</th>
-              <th width="65px">傾斜</th>
-              <th width="80px">幹事<br>(端数)</th>
-              <th width="80px">ご寄付額</th>
-              <th width="130px">１次会出欠<br>総額:<input type="text" id="１次会総額" value="" size="6"></th>
-              <th width="130px">２次会出欠<br>総額:<input type="text" id="２次会総額" value="" size="6"></th>
-              <th width="130px">３次会出欠<br>総額:<input type="text" id="３次会総額" value="" size="6"></th>
+              <th>お名前</th>
+              <th>傾斜</th>
+              <th>幹事<br>(端数)</th>
+              <th>１次会<br>総額:<input type="text" id="１次会総額" size="6"></th>
+              <th>２次会<br>総額:<input type="text" id="２次会総額" size="6"></th>
+              <th>３次会<br>総額:<input type="text" id="３次会総額" size="6"></th>
             </tr>
           </thead>
           <tbody>
@@ -293,10 +203,9 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
               <td><input type="text" name="name" value="ゲスト1"></td>
               <td><input type="number" name="slope" value="5" min="0" step="0.01"></td>
               <td><input type="radio" name="fraction" value="1"></td>
-              <td><input type="text" name="donation"></td>
-              <td><input type="checkbox" name="attendance1" checked="checked"></td>
-              <td><input type="checkbox" name="attendance2"></td>
-              <td><input type="checkbox" name="attendance3"></td>
+              <td><input type="checkbox" name="attendance1" checked><input type="number" name="donation1" class="donation-input" min="0" step="1" placeholder="0"></td>
+              <td><input type="checkbox" name="attendance2"><input type="number" name="donation2" class="donation-input" min="0" step="1" placeholder="0"></td>
+              <td><input type="checkbox" name="attendance3"><input type="number" name="donation3" class="donation-input" min="0" step="1" placeholder="0"></td>
             </tr>
           </tbody>
         </table>
@@ -312,15 +221,10 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
       計算ボタンを押すと精算額が表示されます
     </div>
   </div>
-
 </div>
-
 </main>
 
 <script>
-var participantData = [
-["ゲスト1", "1", "1", "", true, false, false] ];
-
 function addRow() {
 var table = document.getElementById("participantTable").getElementsByTagName('tbody')[0];
 var newRow = table.insertRow();
@@ -330,285 +234,197 @@ var cell3 = newRow.insertCell(2);
 var cell4 = newRow.insertCell(3);
 var cell5 = newRow.insertCell(4);
 var cell6 = newRow.insertCell(5);
-var cell7 = newRow.insertCell(6);
 var newIndex = table.rows.length;
-cell1.innerHTML = '<input type="text" name="name" value="ゲスト' + newIndex + '">'; cell2.innerHTML = '<input type="number" name="slope" value="5" min="0" step="0.01">'; cell3.innerHTML = '<input type="radio" name="fraction" value="' + newIndex + '">';
-cell4.innerHTML = '<input type="text" name="donation">'; cell5.innerHTML = '<input type="checkbox" name="attendance1" checked = "checked">'; cell6.innerHTML = '<input type="checkbox" name="attendance2">'; cell7.innerHTML = '<input type="checkbox" name="attendance3">';
+cell1.innerHTML = '<input type="text" name="name" value="ゲスト' + newIndex + '">';
+cell2.innerHTML = '<input type="number" name="slope" value="5" min="0" step="0.01">';
+cell3.innerHTML = '<input type="radio" name="fraction" value="' + newIndex + '">';
+cell4.innerHTML = '<input type="checkbox" name="attendance1" checked><input type="number" name="donation1" class="donation-input" min="0" step="1" placeholder="0">';
+cell5.innerHTML = '<input type="checkbox" name="attendance2"><input type="number" name="donation2" class="donation-input" min="0" step="1" placeholder="0">';
+cell6.innerHTML = '<input type="checkbox" name="attendance3"><input type="number" name="donation3" class="donation-input" min="0" step="1" placeholder="0">';
 }
 
 function calculate() {
 const radioButtons = document.querySelectorAll('input[name="fraction"]');
 const isSelected = Array.from(radioButtons).some(radio => radio.checked);
-if (!isSelected) {
-alert('幹事（端数）を１人選択してください。');
-return;
-};
+if (!isSelected) { alert('幹事（端数）を１人選択してください。'); return; }
 
 var table = document.getElementById("participantTable").getElementsByTagName('tbody')[0];
-var rows = table.getElementsByTagName("tr"); var resultArray = [];
+var rows = table.getElementsByTagName("tr");
+var resultArray = [];
 
+// rowData: [name, slope, 幹事, att1, don1, att2, don2, att3, don3]
+//           [0]   [1]   [2]   [3]   [4]   [5]   [6]   [7]   [8]
 for (var i = 0; i < rows.length; i++) {
-var rowData = [];
-var cells = rows[i].getElementsByTagName("td");
+  var rowData = [];
+  var cells = rows[i].getElementsByTagName("td");
+  for (var j = 0; j < cells.length; j++) {
+    var inputs = cells[j].getElementsByTagName("input");
+    if (j === 0) {
+      rowData.push(inputs[0].value);
+    } else if (j === 1) {
+      rowData.push(inputs[0].value);
+    } else if (j === 2) {
+      rowData.push(inputs[0].checked ? "1" : "0");
+    } else {
+      // attendance + donation cell
+      rowData.push(inputs[0].checked);
+      rowData.push(Number(inputs[1] ? inputs[1].value : 0) || 0);
+    }
+  }
+  resultArray.push(rowData);
+}
 
-for (var j = 0; j < cells.length; j++) { if (j === 0) { rowData.push(cells[j].getElementsByTagName("input")[0].value);
-} else if (j === 1) {
-rowData.push(cells[j].getElementsByTagName("input")[0].value);
-} else if (j === 2) {
-rowData.push(cells[j].getElementsByTagName("input")[0].checked ? "1" : "0"); } else if (j === 3) { rowData.push(cells[j].getElementsByTagName("input")[0].value);
-} else {
-rowData.push(cells[j].getElementsByTagName("input")[0].checked);
-}
-}
-resultArray.push(rowData);
-}
-
+// attendance boolean → 0/1
 for (let i = 0; i < resultArray.length; i++) {
-if(resultArray[i][4] === false){
-resultArray[i][4] = 0;
-}else{
-resultArray[i][4] = 1;
-}
-if(resultArray[i][5] === false){
-resultArray[i][5] = 0;
-}else{
-resultArray[i][5] = 1;
-}
-if(resultArray[i][6] === false){
-resultArray[i][6] = 0;
-}else{
-resultArray[i][6] = 1;
-}
+  resultArray[i][3] = resultArray[i][3] ? 1 : 0;
+  resultArray[i][5] = resultArray[i][5] ? 1 : 0;
+  resultArray[i][7] = resultArray[i][7] ? 1 : 0;
 }
 
 var sougaku1 = Number(document.getElementById("１次会総額").value);
 var sougaku2 = Number(document.getElementById("２次会総額").value);
 var sougaku3 = Number(document.getElementById("３次会総額").value);
-
 var sougakusum = sougaku1 + sougaku2 + sougaku3;
 var sougakuratio1 = sougaku1 / sougakusum;
 var sougakuratio2 = sougaku2 / sougakusum;
 var sougakuratio3 = sougaku3 / sougakusum;
 
-var keishasum1 = 0;
-var keishasum2 = 0;
-var keishasum3 = 0;
+// 傾斜合計（参加者のみ）
+var keishasum1 = 0, keishasum2 = 0, keishasum3 = 0;
 for (let i = 0; i < resultArray.length; i++) {
-keishasum1 += Number(resultArray[i][1])*Number(resultArray[i][4]);
-keishasum2 += Number(resultArray[i][1])*Number(resultArray[i][5]);
-keishasum3 += Number(resultArray[i][1])*Number(resultArray[i][6]);
-}
-for (let i = 0; i < resultArray.length; i++) {
-resultArray[i][7] = sougaku1 * Number(resultArray[i][1])*Number(resultArray[i][4]) / keishasum1;
-if(keishasum2==0){
-resultArray[i][8] = 0;
-if(sougaku2 > 0){
-alert("２次会は総額が記入されていますが、参加者がいません。総額を削除するか、参加者のチェックを入れてください。");
-return;
-}
-}else{
-resultArray[i][8] = sougaku2 * Number(resultArray[i][1])*Number(resultArray[i][5]) / keishasum2;
-}
-if(keishasum3 == 0){
-resultArray[i][9] = 0;
-if(sougaku3 > 0){
-alert("３次会は総額が記入されていますが、参加者がいません。総額を削除するか、参加者のチェックを入れてください。");
-return;
-}
-}else{
-resultArray[i][9] = sougaku3 * Number(resultArray[i][1])*Number(resultArray[i][6]) / keishasum3;
-}
-}
-for (let i = 0; i < resultArray.length; i++) {
-var gokifunashisum = Number(resultArray[i][7])+Number(resultArray[i][8])+Number(resultArray[i][9]);
-if(resultArray[i][3] >= gokifunashisum){
-var gokifuratio = Number(sougakuratio1 * resultArray[i][4]) + Number(sougakuratio2 * resultArray[i][5]) + Number(sougakuratio3 * resultArray[i][6]);
-if(gokifuratio == 0){
-gokifuratio = Number(sougakuratio1 * 1) + Number(sougakuratio2 * 1) + Number(sougakuratio3 * 1);
-resultArray[i][10] = Number(resultArray[i][3]) * Number(sougakuratio1);
-resultArray[i][11] = Number(resultArray[i][3]) * Number(sougakuratio2);
-resultArray[i][12] = Number(resultArray[i][3]) * Number(sougakuratio3);
-}else{
-resultArray[i][10] = resultArray[i][7] + (resultArray[i][3]-gokifunashisum) * Number(sougakuratio1);
-resultArray[i][11] = resultArray[i][8] + (resultArray[i][3]-gokifunashisum) * Number(sougakuratio2);
-resultArray[i][12] = resultArray[i][9] + (resultArray[i][3]-gokifunashisum) * Number(sougakuratio3);
-}
-}else if(resultArray[i][3] < resultArray[i][7]){
-resultArray[i][10] = resultArray[i][3];
-resultArray[i][11] = 0;
-resultArray[i][12] = 0;
-}else if(resultArray[i][7] < resultArray[i][3] && resultArray[i][3] < resultArray[i][7] + resultArray[i][8] ){
-resultArray[i][10] = resultArray[i][7];
-resultArray[i][11] = resultArray[i][3] - resultArray[i][7];
-resultArray[i][12] = 0;
-}else if(resultArray[i][7] + resultArray[i][8] <resultArray[i][3] && resultArray[i][3] < gokifunashisum){
-resultArray[i][10] = resultArray[i][7];
-resultArray[i][11] = resultArray[i][8];
-resultArray[i][12] = resultArray[i][3] - resultArray[i][7] - resultArray[i][8];
+  keishasum1 += Number(resultArray[i][1]) * Number(resultArray[i][3]);
+  keishasum2 += Number(resultArray[i][1]) * Number(resultArray[i][5]);
+  keishasum3 += Number(resultArray[i][1]) * Number(resultArray[i][7]);
 }
 
-}
+// 寄付なし仮精算額 → [9][10][11]
 for (let i = 0; i < resultArray.length; i++) {
-resultArray[i][10] = Round1(resultArray[i][10]);
-resultArray[i][11] = Round1(resultArray[i][11]);
-resultArray[i][12] = Round1(resultArray[i][12]);
-}
-for (let i = 0; i < resultArray.length; i++) {
-resultArray[i][10] = resultArray[i][3] - resultArray[i][11] - resultArray[i][12]; }
-
-var gokifusum1 = 0;
-var gokifusum2 = 0;
-var gokifusum3 = 0;
-for (let i = 0; i < resultArray.length; i++) {
-gokifusum1 += resultArray[i][10];
-gokifusum2 += resultArray[i][11];
-gokifusum3 += resultArray[i][12];
-}
-
-var exgokifu1 = 0;
-var exgokifu2 = 0;
-var exgokifu3 = 0;
-for (let i = 0; i < resultArray.length; i++) {
-if(resultArray[i][10] >= resultArray[i][7]){
-resultArray[i][13] = 0;
-exgokifu1 += Number(resultArray[i][10])-Number(resultArray[i][7]);
-}else{
-resultArray[i][13] = resultArray[i][7] - resultArray[i][10];
-}
-if(resultArray[i][11] >= resultArray[i][8]){
-resultArray[i][14] = 0;
-exgokifu2 += Number(resultArray[i][11])-Number(resultArray[i][8]);
-}else{
-resultArray[i][14] = resultArray[i][8] - resultArray[i][11];
-}
-if(resultArray[i][12] >= resultArray[i][9]){
-resultArray[i][15] = 0;
-exgokifu3 += Number(resultArray[i][12])-Number(resultArray[i][9]);
-}else{
-resultArray[i][15] = resultArray[i][9] - resultArray[i][12];
-}
-}
-console.table(resultArray)
-console.log(exgokifu1)
-console.log(exgokifu2)
-console.log(exgokifu3)
-var seisanarikeishasum1 = 0;
-var seisanarikeishasum2 = 0;
-var seisanarikeishasum3 = 0;
-for (let i = 0; i < resultArray.length; i++) {
-if(resultArray[i][13] > 0){
-seisanarikeishasum1 += Number(resultArray[i][1])*Number(resultArray[i][4]);
-}
-if(resultArray[i][14] > 0){
-seisanarikeishasum2 += Number(resultArray[i][1])*Number(resultArray[i][5]);
-}
-if(resultArray[i][15] > 0){
-seisanarikeishasum3 += Number(resultArray[i][1])*Number(resultArray[i][6]);
-}
-}
-var exgokifu1_2 = 0;
-var exgokifu2_2 = 0;
-var exgokifu3_2 = 0;
-for (let i = 0; i < resultArray.length; i++) {
-if(resultArray[i][13] > 0){
-if(resultArray[i][13] >= exgokifu1*(resultArray[i][1])/seisanarikeishasum1){
-resultArray[i][13] -= exgokifu1*(resultArray[i][1])/seisanarikeishasum1;
-}else{
-exgokifu1_2 += exgokifu1*(resultArray[i][1])/seisanarikeishasum1 - resultArray[i][13];
-resultArray[i][13] = 0;
-}
-if(resultArray[i][14] > exgokifu2*(resultArray[i][1])/seisanarikeishasum2){
-resultArray[i][14] -= exgokifu2*(resultArray[i][1])/seisanarikeishasum2;
-}else{
-exgokifu2_2 += exgokifu2*(resultArray[i][1])/seisanarikeishasum2 - resultArray[i][14];
-resultArray[i][14] = 0;
-}
-if(resultArray[i][15] > exgokifu3*(resultArray[i][1])/seisanarikeishasum3){
-resultArray[i][15] -= exgokifu3*(resultArray[i][1])/seisanarikeishasum3;
-}else{
-exgokifu3_2 += exgokifu3*(resultArray[i][1])/seisanarikeishasum3 - resultArray[i][15];
-resultArray[i][15] = 0;
-}
-}
-}
-console.table(resultArray)
-console.log(exgokifu1_2)
-console.log(exgokifu2_2)
-console.log(exgokifu3_2)
-if(exgokifu1_2 > 0 || exgokifu2_2 > 0 || exgokifu3_2 > 0){
-var seisangakusum1 = 0;
-var seisangakusum2 = 0;
-var seisangakusum3 = 0;
-for (let i = 0; i < resultArray.length; i++) {
-if(resultArray[i][13] > 0){
-seisangakusum1 += Number(resultArray[i][13]);
-}
-if(resultArray[i][14] > 0){
-seisangakusum2 += Number(resultArray[i][14]);
-}
-if(resultArray[i][15] > 0){
-seisangakusum3 += Number(resultArray[i][15]);
-}
-}
-if(exgokifu1_2 > seisangakusum1 || exgokifu2_2 > seisangakusum2 || exgokifu3_2 > seisangakusum3){
-alert("ご寄付が多すぎるため、各人の精算額がゼロになり、ご寄付が余ります。");
-}
-for (let i = 0; i < resultArray.length; i++) {
-if(resultArray[i][13] > 0){
-resultArray[i][13] -= exgokifu1_2*(resultArray[i][13])/seisangakusum1;
-}
-if(resultArray[i][14] > 0){
-resultArray[i][14] -= exgokifu2_2*(resultArray[i][14])/seisangakusum2;
-}
-if(resultArray[i][15] > 0){
-resultArray[i][15] -= exgokifu3_2*(resultArray[i][15])/seisangakusum3;
-}
-}
-}
-console.table(resultArray)
-
-for (let i = 0; i < resultArray.length; i++) {
-resultArray[i][13] = Round1(resultArray[i][13]);
-resultArray[i][14] = Round1(resultArray[i][14]);
-resultArray[i][15] = Round1(resultArray[i][15]);
+  resultArray[i][9] = keishasum1 > 0 ? sougaku1 * Number(resultArray[i][1]) * Number(resultArray[i][3]) / keishasum1 : 0;
+  if (keishasum2 == 0) {
+    resultArray[i][10] = 0;
+    if (sougaku2 > 0) { alert("２次会は総額が記入されていますが、参加者がいません。"); return; }
+  } else {
+    resultArray[i][10] = sougaku2 * Number(resultArray[i][1]) * Number(resultArray[i][5]) / keishasum2;
+  }
+  if (keishasum3 == 0) {
+    resultArray[i][11] = 0;
+    if (sougaku3 > 0) { alert("３次会は総額が記入されていますが、参加者がいません。"); return; }
+  } else {
+    resultArray[i][11] = sougaku3 * Number(resultArray[i][1]) * Number(resultArray[i][7]) / keishasum3;
+  }
 }
 
+// 寄付合計
+var gokifusum1 = 0, gokifusum2 = 0, gokifusum3 = 0;
+for (let i = 0; i < resultArray.length; i++) {
+  gokifusum1 += Number(resultArray[i][4]) || 0;
+  gokifusum2 += Number(resultArray[i][6]) || 0;
+  gokifusum3 += Number(resultArray[i][8]) || 0;
+}
+
+// 精算額（寄付控除後）→ [12][13][14]、超過寄付を蓄積
+var exgokifu1 = 0, exgokifu2 = 0, exgokifu3 = 0;
+for (let i = 0; i < resultArray.length; i++) {
+  var don1 = Number(resultArray[i][4]) || 0;
+  var don2 = Number(resultArray[i][6]) || 0;
+  var don3 = Number(resultArray[i][8]) || 0;
+  if (don1 >= resultArray[i][9]) { resultArray[i][12] = 0; exgokifu1 += don1 - resultArray[i][9]; }
+  else { resultArray[i][12] = resultArray[i][9] - don1; }
+  if (don2 >= resultArray[i][10]) { resultArray[i][13] = 0; exgokifu2 += don2 - resultArray[i][10]; }
+  else { resultArray[i][13] = resultArray[i][10] - don2; }
+  if (don3 >= resultArray[i][11]) { resultArray[i][14] = 0; exgokifu3 += don3 - resultArray[i][11]; }
+  else { resultArray[i][14] = resultArray[i][11] - don3; }
+}
+console.table(resultArray); console.log(exgokifu1, exgokifu2, exgokifu3);
+
+// 超過寄付の再配分（1回目：傾斜割合で）
+var seisanarikeishasum1 = 0, seisanarikeishasum2 = 0, seisanarikeishasum3 = 0;
+for (let i = 0; i < resultArray.length; i++) {
+  if (resultArray[i][12] > 0) seisanarikeishasum1 += Number(resultArray[i][1]) * Number(resultArray[i][3]);
+  if (resultArray[i][13] > 0) seisanarikeishasum2 += Number(resultArray[i][1]) * Number(resultArray[i][5]);
+  if (resultArray[i][14] > 0) seisanarikeishasum3 += Number(resultArray[i][1]) * Number(resultArray[i][7]);
+}
+var exgokifu1_2 = 0, exgokifu2_2 = 0, exgokifu3_2 = 0;
+for (let i = 0; i < resultArray.length; i++) {
+  if (resultArray[i][12] > 0) {
+    var sub1 = seisanarikeishasum1 > 0 ? exgokifu1 * Number(resultArray[i][1]) / seisanarikeishasum1 : 0;
+    if (resultArray[i][12] >= sub1) { resultArray[i][12] -= sub1; }
+    else { exgokifu1_2 += sub1 - resultArray[i][12]; resultArray[i][12] = 0; }
+    var sub2 = seisanarikeishasum2 > 0 ? exgokifu2 * Number(resultArray[i][1]) / seisanarikeishasum2 : 0;
+    if (resultArray[i][13] > sub2) { resultArray[i][13] -= sub2; }
+    else { exgokifu2_2 += sub2 - resultArray[i][13]; resultArray[i][13] = 0; }
+    var sub3 = seisanarikeishasum3 > 0 ? exgokifu3 * Number(resultArray[i][1]) / seisanarikeishasum3 : 0;
+    if (resultArray[i][14] > sub3) { resultArray[i][14] -= sub3; }
+    else { exgokifu3_2 += sub3 - resultArray[i][14]; resultArray[i][14] = 0; }
+  }
+}
+console.table(resultArray); console.log(exgokifu1_2, exgokifu2_2, exgokifu3_2);
+
+// 超過寄付の再配分（2回目：精算額割合で）
+if (exgokifu1_2 > 0 || exgokifu2_2 > 0 || exgokifu3_2 > 0) {
+  var seisangakusum1 = 0, seisangakusum2 = 0, seisangakusum3 = 0;
+  for (let i = 0; i < resultArray.length; i++) {
+    if (resultArray[i][12] > 0) seisangakusum1 += Number(resultArray[i][12]);
+    if (resultArray[i][13] > 0) seisangakusum2 += Number(resultArray[i][13]);
+    if (resultArray[i][14] > 0) seisangakusum3 += Number(resultArray[i][14]);
+  }
+  if (exgokifu1_2 > seisangakusum1 || exgokifu2_2 > seisangakusum2 || exgokifu3_2 > seisangakusum3) {
+    alert("ご寄付が多すぎるため、各人の精算額がゼロになり、ご寄付が余ります。");
+  }
+  for (let i = 0; i < resultArray.length; i++) {
+    if (resultArray[i][12] > 0 && seisangakusum1 > 0) resultArray[i][12] -= exgokifu1_2 * resultArray[i][12] / seisangakusum1;
+    if (resultArray[i][13] > 0 && seisangakusum2 > 0) resultArray[i][13] -= exgokifu2_2 * resultArray[i][13] / seisangakusum2;
+    if (resultArray[i][14] > 0 && seisangakusum3 > 0) resultArray[i][14] -= exgokifu3_2 * resultArray[i][14] / seisangakusum3;
+  }
+}
+console.table(resultArray);
+
+// 1円丸め → [12][13][14]
+for (let i = 0; i < resultArray.length; i++) {
+  resultArray[i][12] = Round1(resultArray[i][12]);
+  resultArray[i][13] = Round1(resultArray[i][13]);
+  resultArray[i][14] = Round1(resultArray[i][14]);
+}
+
+// 選択単位で丸め → [15][16][17]
 var unit = Number(document.getElementById("roundingUnit").value);
 var roundFn = unit === 100 ? Round100 : unit === 500 ? Round500 : Round1000;
 for (let i = 0; i < resultArray.length; i++) {
-resultArray[i][16] = roundFn(resultArray[i][13]);
-resultArray[i][17] = roundFn(resultArray[i][14]);
-resultArray[i][18] = roundFn(resultArray[i][15]);
+  resultArray[i][15] = roundFn(resultArray[i][12]);
+  resultArray[i][16] = roundFn(resultArray[i][13]);
+  resultArray[i][17] = roundFn(resultArray[i][14]);
 }
 
-var Rsum1 = 0;
-var Rsum2 = 0;
-var Rsum3 = 0;
+// 丸め後の合計（精算額 + 寄付額）
+var Rsum1 = 0, Rsum2 = 0, Rsum3 = 0;
 for (let i = 0; i < resultArray.length; i++) {
-Rsum1 += resultArray[i][16] + resultArray[i][10];
-Rsum2 += resultArray[i][17] + resultArray[i][11];
-Rsum3 += resultArray[i][18] + resultArray[i][12];
+  Rsum1 += resultArray[i][15] + (Number(resultArray[i][4]) || 0);
+  Rsum2 += resultArray[i][16] + (Number(resultArray[i][6]) || 0);
+  Rsum3 += resultArray[i][17] + (Number(resultArray[i][8]) || 0);
 }
 
+// 幹事に端数を集約
 for (let i = 0; i < resultArray.length; i++) {
-if(resultArray[i][2] == 1){
-if(resultArray[i][4]+resultArray[i][5]+resultArray[i][6]==0){
-alert("幹事(端数)は、必ず全ての会に出席するようにしてください。");
-return;
-}
-resultArray[i][16] += sougaku1 - Rsum1;
-resultArray[i][17] += sougaku2 - Rsum2;
-resultArray[i][18] += sougaku3 - Rsum3;
-}
+  if (resultArray[i][2] == 1) {
+    if (resultArray[i][3] + resultArray[i][5] + resultArray[i][7] == 0) {
+      alert("幹事(端数)は、必ず全ての会に出席するようにしてください。"); return;
+    }
+    resultArray[i][15] += sougaku1 - Rsum1;
+    resultArray[i][16] += sougaku2 - Rsum2;
+    resultArray[i][17] += sougaku3 - Rsum3;
+  }
 }
 
-resultArray.push(["ご寄付","","","","1","","","","","","","","","","","",gokifusum1,gokifusum2,gokifusum3]);
-resultArray.push(["総額","","","","1","","","","","","","","","","","",sougaku1,sougaku2,sougaku3]);
-resultArray.unshift(["","","","","1","","","","","","","","","","","","１次会","２次会","３次会"]);
+// フッター・ヘッダー行追加
+// フッター: index 3 に "1" を入れて generateTable の条件をパスさせる
+resultArray.push(["ご寄付","","","1","","","","","","","","","","","",gokifusum1,gokifusum2,gokifusum3]);
+resultArray.push(["総額",  "","","1","","","","","","","","","","","",sougaku1,  sougaku2,  sougaku3  ]);
+resultArray.unshift(["","","","1","","1","","1","","","","","","","","１次会","２次会","３次会"]);
 
-resultArray[0][19] = "計";
+// 計列 [18]
+resultArray[0][18] = "計";
 for (let i = 1; i < resultArray.length; i++) {
-resultArray[i][19] = Number(resultArray[i][16]) + Number(resultArray[i][17]) + Number(resultArray[i][18]);
+  resultArray[i][18] = Number(resultArray[i][15]) + Number(resultArray[i][16]) + Number(resultArray[i][17]);
 }
 
 document.getElementById("resultArea").style.display = "";
@@ -616,76 +432,76 @@ document.getElementById("resultPlaceholder").style.display = "none";
 
 var container = document.getElementById("resultTable");
 container.innerHTML = "";
-container.appendChild(generateTable(resultArray,"R"));
-var indexarr = [15,14,13,12,11,10,9,8,7,6,5,4,3,2,1];
-deleteColumn("R",indexarr);
+container.appendChild(generateTable(resultArray, "R"));
 
-if(sougaku3 == "" && sougaku2 > 0){
-deleteColumn("R",[3]);
-}else if(sougaku3 == "" && sougaku2 == ""){
-deleteColumn("R",[4,3,2]);
+// 不要列を削除（降順）: 0(name), 15→1, 16→2, 17→3, 18→4 を残す
+deleteColumn("R", [14,13,12,11,10,9,8,7,6,5,4,3,2,1]);
+
+// 開催なし次会の列を削除
+if (sougaku3 == "" && sougaku2 > 0) {
+  deleteColumn("R", [3]);
+} else if (sougaku3 == "" && sougaku2 == "") {
+  deleteColumn("R", [4,3,2]);
 }
-if(gokifusum1 == 0){
-document.getElementById("R").deleteRow(resultArray.length-2);
+// 寄付なしならご寄付行を削除
+if (gokifusum1 + gokifusum2 + gokifusum3 == 0) {
+  document.getElementById("R").deleteRow(resultArray.length - 2);
 }
 }
 
-function generateTable(data,idname) {
+function generateTable(data, idname) {
 var table = document.createElement("table");
+var thead = document.createElement("thead");
 var tbody = document.createElement("tbody");
-
 for (var i = 0; i < data.length; i++) {
-if(data[i][4] + data[i][5] + data[i][6] > 0){
-var row = document.createElement("tr");
-
-for (var j = 0; j < data[i].length; j++) {
-var cell = document.createElement("td");
-cell.textContent = data[i][j];
-row.appendChild(cell);
+  if (Number(data[i][3]) + Number(data[i][5]) + Number(data[i][7]) > 0) {
+    var row = document.createElement("tr");
+    if (i === data.length - 1) row.className = "row-total";
+    else if (i === data.length - 2) row.className = "row-gokifu";
+    for (var j = 0; j < data[i].length; j++) {
+      var cell = (i === 0) ? document.createElement("th") : document.createElement("td");
+      cell.textContent = data[i][j];
+      row.appendChild(cell);
+    }
+    if (i === 0) thead.appendChild(row);
+    else tbody.appendChild(row);
+  }
 }
-tbody.appendChild(row);
-}
-}
+if (thead.rows.length > 0) table.appendChild(thead);
 table.appendChild(tbody);
-table.id = idname
+table.id = idname;
 return table;
 }
 
-function Round1(x){
-return(Math.round(x));
-}
-function Round100(x){
-return(Math.round(x*1/100)*100/1);
-}
-function Round500(x){
-return(Math.round(x*2/1000)*1000/2);
-}
-function Round1000(x){
-return(Math.round(x*1/1000)*1000/1);
-}
-function deleteColumn(idname,indexarr) {
-let table = document.getElementById(idname);
-let rowCount = table.rows.length;
-for (let i = 0; i < indexarr.length; i++) {
-for (var j = 0; j < rowCount; j++) {
-table.rows[j].deleteCell(indexarr[i]);
+function Round1(x)    { return Math.round(x); }
+function Round100(x)  { return Math.round(x / 100) * 100; }
+function Round500(x)  { return Math.round(x / 500) * 500; }
+function Round1000(x) { return Math.round(x / 1000) * 1000; }
+
+function deleteColumn(idname, indexarr) {
+var table = document.getElementById(idname);
+var rowCount = table.rows.length;
+for (var i = 0; i < indexarr.length; i++) {
+  for (var j = 0; j < rowCount; j++) {
+    if (table.rows[j].cells.length > indexarr[i]) table.rows[j].deleteCell(indexarr[i]);
+  }
 }
 }
-}
+
 function steepSlope() {
 var rows = document.getElementById("participantTable").getElementsByTagName('tbody')[0].getElementsByTagName("tr");
 for (var i = 0; i < rows.length; i++) {
-var input = rows[i].getElementsByTagName("td")[1].getElementsByTagName("input")[0];
-var val = Number(input.value);
-input.value = val > 0 ? Math.round(Math.pow(val, 1.25) * 100) / 100 : 0;
+  var input = rows[i].getElementsByTagName("td")[1].getElementsByTagName("input")[0];
+  var val = Number(input.value);
+  input.value = val > 0 ? Math.round(Math.pow(val, 1.25) * 100) / 100 : 0;
 }
 }
 function gentleSlope() {
 var rows = document.getElementById("participantTable").getElementsByTagName('tbody')[0].getElementsByTagName("tr");
 for (var i = 0; i < rows.length; i++) {
-var input = rows[i].getElementsByTagName("td")[1].getElementsByTagName("input")[0];
-var val = Number(input.value);
-input.value = val > 0 ? Math.round(Math.pow(val, 0.8) * 100) / 100 : 0;
+  var input = rows[i].getElementsByTagName("td")[1].getElementsByTagName("input")[0];
+  var val = Number(input.value);
+  input.value = val > 0 ? Math.round(Math.pow(val, 0.8) * 100) / 100 : 0;
 }
 }
 </script>
