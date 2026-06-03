@@ -453,39 +453,73 @@ function calculate() {
     for (var k = 0; k < N; k++) resultArray[i][netIdx(k, N)] = Round1(resultArray[i][netIdx(k, N)]);
   }
 
-  // 選択単位で丸め [roundedIdx]
+  // 選択単位で丸め + 最大余剰法（幹事の端数負担を unit/2 未満に抑える）
   var unit = Number(document.getElementById("roundingUnit").value);
-  var roundFn = unit === 100 ? Round100 : unit === 500 ? Round500 : Round1000;
-  for (var i = 0; i < resultArray.length; i++) {
-    for (var k = 0; k < N; k++) resultArray[i][roundedIdx(k, N)] = roundFn(resultArray[i][netIdx(k, N)]);
-  }
 
-  // 丸め後合計（精算額 + 寄付額）
-  var Rsum = new Array(N).fill(0);
+  // 幹事インデックスを特定
+  var kanjiI = -1;
   for (var i = 0; i < resultArray.length; i++) {
-    for (var k = 0; k < N; k++) Rsum[k] += resultArray[i][roundedIdx(k, N)] + (Number(resultArray[i][donIdx(k)]) || 0);
+    if (resultArray[i][2] == 1) { kanjiI = i; break; }
   }
+  var attendedAny = false;
+  for (var k = 0; k < N; k++) { if (resultArray[kanjiI][attIdx(k)]) attendedAny = true; }
+  if (!attendedAny) { alert("幹事(端数)は少なくとも1つの会に出席するようにしてください。"); return; }
 
-  // 幹事に端数を集約（出席した会のみ。未出席の会は最大金額の参加者に集約）
-  for (var i = 0; i < resultArray.length; i++) {
-    if (resultArray[i][2] == 1) {
-      var attendedAny = false;
-      for (var k = 0; k < N; k++) { if (resultArray[i][attIdx(k)]) attendedAny = true; }
-      if (!attendedAny) { alert("幹事(端数)は少なくとも1つの会に出席するようにしてください。"); return; }
-      for (var k = 0; k < N; k++) {
-        var diff = sougaku[k] - Rsum[k];
+  for (var k = 0; k < N; k++) {
+    if (sougaku[k] === 0) continue;
+
+    // Step 1: Math.round 基本丸め
+    for (var i = 0; i < resultArray.length; i++) {
+      resultArray[i][roundedIdx(k, N)] = Math.round(resultArray[i][netIdx(k, N)] / unit) * unit;
+    }
+
+    // Step 2: 合計誤差を計算
+    var Rk = 0;
+    for (var i = 0; i < resultArray.length; i++) {
+      Rk += resultArray[i][roundedIdx(k, N)] + (Number(resultArray[i][donIdx(k)]) || 0);
+    }
+    var diff = sougaku[k] - Rk;
+    var diffUnits = Math.round(diff / unit); // ±unit を何人に配るか
+    var remainder = diff - diffUnits * unit;  // 幹事が吸収する残余（< unit/2）
+
+    // Step 3: diffUnits 分を丸め誤差の大きい順に ±unit 調整（幹事優先タイブレーク）
+    if (diffUnits !== 0) {
+      var attendees = [];
+      for (var i = 0; i < resultArray.length; i++) {
         if (resultArray[i][attIdx(k)]) {
-          resultArray[i][roundedIdx(k, N)] += diff;
-        } else if (diff !== 0) {
-          var maxI = -1, maxVal = -Infinity;
-          for (var ii = 0; ii < resultArray.length; ii++) {
-            if (resultArray[ii][attIdx(k)] && resultArray[ii][roundedIdx(k, N)] > maxVal) {
-              maxVal = resultArray[ii][roundedIdx(k, N)]; maxI = ii;
-            }
-          }
-          if (maxI >= 0) resultArray[maxI][roundedIdx(k, N)] += diff;
+          attendees.push({ idx: i, err: resultArray[i][netIdx(k, N)] - resultArray[i][roundedIdx(k, N)] });
         }
       }
+      if (diffUnits > 0) {
+        attendees.sort(function(a, b) {
+          if (b.err !== a.err) return b.err - a.err;
+          return (a.idx === kanjiI) ? -1 : (b.idx === kanjiI) ? 1 : 0;
+        });
+      } else {
+        attendees.sort(function(a, b) {
+          if (a.err !== b.err) return a.err - b.err;
+          return (a.idx === kanjiI) ? -1 : (b.idx === kanjiI) ? 1 : 0;
+        });
+      }
+      var nAdj = Math.abs(diffUnits);
+      var adj = diffUnits > 0 ? unit : -unit;
+      for (var j = 0; j < nAdj && j < attendees.length; j++) {
+        resultArray[attendees[j].idx][roundedIdx(k, N)] += adj;
+      }
+    }
+
+    // Step 4: 端数（< unit/2）を幹事（出席していなければ最大金額者）が吸収
+    if (remainder !== 0) {
+      var absorbI = resultArray[kanjiI][attIdx(k)] ? kanjiI : -1;
+      if (absorbI < 0) {
+        var maxVal = -Infinity;
+        for (var i = 0; i < resultArray.length; i++) {
+          if (resultArray[i][attIdx(k)] && resultArray[i][roundedIdx(k, N)] > maxVal) {
+            maxVal = resultArray[i][roundedIdx(k, N)]; absorbI = i;
+          }
+        }
+      }
+      if (absorbI >= 0) resultArray[absorbI][roundedIdx(k, N)] += remainder;
     }
   }
 
