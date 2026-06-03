@@ -606,13 +606,41 @@ function calculate() {
   // 幹事マイナス警告
   var warnLines = [];
   for (var k = 0; k < N; k++) {
-    var amt = resultArray[kanjiI][roundedIdx(k, N)];
-    if (amt < 0) warnLines.push(partyLabel(k + 1) + '：' + amt + '円');
+    var kAmt = resultArray[kanjiI][roundedIdx(k, N)];
+    if (kAmt < 0) warnLines.push(partyLabel(k + 1) + '：' + kAmt + '円');
   }
+
+  // 同傾斜・非幹事の精算額不一致チェック
+  var slopeMismatch = [];
+  for (var k = 0; k < N; k++) {
+    var slopeGroups = {};
+    for (var i = 0; i < resultArray.length; i++) {
+      if (i === kanjiI || !resultArray[i][attIdx(k)]) continue;
+      var sl = Number(resultArray[i][1]).toFixed(1);
+      if (!slopeGroups[sl]) slopeGroups[sl] = [];
+      slopeGroups[sl].push(resultArray[i][roundedIdx(k, N)]);
+    }
+    for (var sl in slopeGroups) {
+      var amts = slopeGroups[sl];
+      var allSame = true;
+      for (var j = 1; j < amts.length; j++) { if (amts[j] !== amts[0]) { allSame = false; break; } }
+      if (!allSame) slopeMismatch.push(partyLabel(k + 1) + ' 傾斜' + sl);
+    }
+  }
+
+  var msgParts = [];
   if (warnLines.length > 0) {
-    document.getElementById('warnModalMsg').innerHTML =
-      '以下の次会で幹事の精算額がマイナスになりました。<br>' +
-      '傾斜や丸め単位を調整してください。<br><br>' + warnLines.join('<br>');
+    msgParts.push('<b>幹事の精算額がマイナス</b><br>' + warnLines.join('<br>') + '<br>傾斜や丸め単位を調整してください。');
+  }
+  if (slopeMismatch.length > 0) {
+    msgParts.push('<b>同傾斜の非幹事で精算額が異なります</b><br>' + slopeMismatch.join('<br>') + '<br>丸め単位を小さくするか、傾斜を変えてください。');
+  }
+  if (msgParts.length > 0) {
+    document.getElementById('warnModalTitle').textContent =
+      (warnLines.length > 0 && slopeMismatch.length > 0) ? '⚠️ 計算結果に注意が必要です' :
+      warnLines.length > 0 ? '⚠️ 幹事の精算額がマイナスになっています' :
+      '⚠️ 同傾斜の精算額が一致していません';
+    document.getElementById('warnModalMsg').innerHTML = msgParts.join('<br><br>');
     document.getElementById('warnModal').classList.add('visible');
   }
 
@@ -905,7 +933,7 @@ document.querySelectorAll('input[name="slope"]').forEach(function(inp) { formatS
 
 <div class="modal-overlay" id="warnModal">
   <div class="modal-box">
-    <h2>⚠️ 幹事の精算額がマイナスになっています</h2>
+    <h2 id="warnModalTitle"></h2>
     <p id="warnModalMsg"></p>
     <button class="btn-calc modal-close" onclick="document.getElementById('warnModal').classList.remove('visible')">閉じる</button>
   </div>
