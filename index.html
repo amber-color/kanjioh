@@ -866,19 +866,17 @@ function saveAsHTML() {
   var html = '<!DOCTYPE html>\n' + clone.outerHTML;
   html = html.replace(/var partyCount = \d+;/, 'var partyCount = ' + partyCount + ';');
 
-  // yyyymmdd.html でダウンロード
+  // yyyymmdd.html でダウンロード（data: URI はローカルファイルからも動作する）
   var now = new Date();
   var filename = now.getFullYear() +
     String(now.getMonth() + 1).padStart(2, '0') +
     String(now.getDate()).padStart(2, '0') + '.html';
-  var blob = new Blob([html], {type: 'text/html'});
   var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
+  a.href = 'data:text/html;charset=utf-8,' + encodeURIComponent(html);
   a.download = filename;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  URL.revokeObjectURL(a.href);
 }
 
 function formatSlope(input) {
