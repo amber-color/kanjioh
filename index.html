@@ -28,9 +28,32 @@ body {
 .app-header {
   background: linear-gradient(135deg, #3730a3 0%, #4f46e5 100%);
   color: white; padding: 18px 28px; display: flex; align-items: center; gap: 12px;
-  box-shadow: 0 2px 12px rgba(79,70,229,0.3);
+  box-shadow: 0 2px 12px rgba(79,70,229,0.3); position: relative;
 }
 .app-header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.3px; }
+.btn-help {
+  margin-left: auto; width: 26px; height: 26px; border-radius: 50%; padding: 0;
+  background: rgba(255,255,255,0.2); color: white;
+  border: 1.5px solid rgba(255,255,255,0.5); font-size: 0.9rem; font-weight: 700;
+  cursor: pointer; flex-shrink: 0; line-height: 1;
+}
+.btn-help:hover { background: rgba(255,255,255,0.35); transform: none; }
+.help-balloon {
+  display: none; position: absolute; top: calc(100% + 10px); right: 0;
+  background: white; color: var(--text); border-radius: 10px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18); padding: 14px 18px;
+  font-size: 0.85rem; line-height: 1.9; max-width: 380px; min-width: 260px;
+  z-index: 300; border: 1px solid var(--border);
+}
+.help-balloon::before {
+  content: ''; position: absolute; top: -9px; right: 10px;
+  border: 8px solid transparent; border-top: none; border-bottom-color: var(--border);
+}
+.help-balloon::after {
+  content: ''; position: absolute; top: -7px; right: 10px;
+  border: 8px solid transparent; border-top: none; border-bottom-color: white;
+}
+.help-balloon.visible { display: block; }
 
 /* Layout */
 main { max-width: 1400px; margin: 0 auto; padding: 20px 16px; }
@@ -147,7 +170,7 @@ tbody tr:hover { background: #f0f4ff; }
   text-align: right; color: var(--text); display: block;
 }
 .donation-input::-webkit-inner-spin-button,
-.donation-input::-webkit-outer-spin-button { opacity: 0; }
+.donation-input::-webkit-outer-spin-button { opacity: 1; }
 #participantTable tbody td:has(.donation-input:focus) {
   background: #eef2ff !important;
   box-shadow: inset 0 0 0 2px var(--primary);
@@ -191,16 +214,16 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
 <body>
 <header class="app-header">
   <h1>👑 幹事王</h1>
+  <button class="btn-help" onclick="toggleHelp(event)" aria-label="使い方">?</button>
+  <div class="help-balloon" id="helpBalloon">
+    ・「参加者追加」ボタンで参加人数分の行を表示させる<br>
+    ・お名前・傾斜・幹事チェック・出欠チェックボックスを入力する<br>
+    ・ご寄付がある場合はチェックボックス横の欄に入力する<br>
+    ・上の総額パネルに各次会の支払総額を入力する<br>
+    ・「計算する」ボタンで精算額が右に表示される
+  </div>
 </header>
 <main>
-
-<details>
-  <summary>使い方</summary>
-  ・「参加者追加」ボタンで参加人数分の行を表示させる<br>
-  ・それぞれにお名前、傾斜、幹事チェック、○次会出欠チェックボックスを入力する。ご寄付がある場合はチェックボックス横の欄に入力する。<br>
-  ・上の総額パネルに各次会の支払総額を入力する。<br>
-  ・「計算する」ボタンで精算額が右に表示される。
-</details>
 
 <div class="btn-row">
   <button class="btn-add"    onclick="addRow()">＋ 参加者追加</button>
@@ -721,6 +744,7 @@ function steepSlope() {
     var input = rows[i].getElementsByTagName("td")[1].getElementsByTagName("input")[0];
     var val = Number(input.value);
     input.value = val > 0 ? Math.round(Math.pow(val, 1.25) * 100) / 100 : 0;
+    formatSlope(input);
   }
 }
 function gentleSlope() {
@@ -729,8 +753,32 @@ function gentleSlope() {
     var input = rows[i].getElementsByTagName("td")[1].getElementsByTagName("input")[0];
     var val = Number(input.value);
     input.value = val > 0 ? Math.round(Math.pow(val, 0.8) * 100) / 100 : 0;
+    formatSlope(input);
   }
 }
+
+function formatSlope(input) {
+  var v = parseFloat(input.value);
+  if (!isNaN(v) && v >= 0) input.value = (Math.round(v * 10) / 10).toFixed(1);
+}
+
+function toggleHelp(e) {
+  e.stopPropagation();
+  document.getElementById('helpBalloon').classList.toggle('visible');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#helpBalloon') && !e.target.closest('.btn-help')) {
+    document.getElementById('helpBalloon').classList.remove('visible');
+  }
+});
+
+// 傾斜入力フォーカスアウト時に1桁小数フォーマット（既存行・追加行共通）
+document.getElementById('participantTable').addEventListener('blur', function(e) {
+  if (e.target.name === 'slope') formatSlope(e.target);
+}, true);
+
+// ページロード時の初期値をフォーマット
+document.querySelectorAll('input[name="slope"]').forEach(function(inp) { formatSlope(inp); });
 </script>
 </body>
 </html>
