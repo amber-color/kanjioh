@@ -209,6 +209,22 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
   padding: 48px 24px; text-align: center; color: var(--text-muted);
   font-size: 0.875rem; border: 2px dashed var(--border);
 }
+
+/* Mobile: テーブルを画面幅に収める */
+@media (max-width: 600px) {
+  #participantTable { table-layout: fixed; width: 100%; }
+  #participantTable col.col-slope { width: 40px; }
+  #participantTable col.col-kanji { width: 36px; }
+  #participantTable col.col-att   { width: 32px; }
+  #participantTable col.col-don   { width: 60px; }
+  #participantTable th { padding: 4px 2px; font-size: 0.63rem !important; }
+  #participantTable .subheader { font-size: 0.6rem !important; }
+  #participantTable tbody td input[type="text"],
+  #participantTable tbody td input[type="number"]:not(.donation-input) {
+    padding: 6px 4px; font-size: 0.78rem;
+  }
+  .donation-input { padding: 6px 2px; font-size: 0.78rem; }
+}
 </style>
 </head>
 <body>
@@ -241,7 +257,6 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
 <div class="party-totals" id="partyTotals">
   <div class="party-total-item"><label>１次会 総額</label><input type="number" class="total-input" id="総額1" min="0"></div>
   <div class="party-total-item"><label>２次会 総額</label><input type="number" class="total-input" id="総額2" min="0"></div>
-  <div class="party-total-item"><label>３次会 総額</label><input type="number" class="total-input" id="総額3" min="0"></div>
   <button class="btn-add-party" id="btnAddParty" onclick="addParty()">＋ 次会追加</button>
 </div>
 
@@ -250,6 +265,13 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
     <div class="table-card">
       <div class="table-wrap">
         <table id="participantTable">
+          <colgroup>
+            <col><!-- name -->
+            <col class="col-slope"><!-- 傾斜 -->
+            <col class="col-kanji"><!-- 幹事 -->
+            <col class="col-att"><col class="col-don"><!-- 1次会 -->
+            <col class="col-att"><col class="col-don"><!-- 2次会 -->
+          </colgroup>
           <thead>
             <tr>
               <th rowspan="2">お名前</th>
@@ -257,10 +279,8 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
               <th rowspan="2">幹事<br>(端数)</th>
               <th colspan="2" class="party-col">１次会</th>
               <th colspan="2" class="party-col">２次会</th>
-              <th colspan="2" class="party-col">３次会</th>
             </tr>
             <tr>
-              <th class="subheader">出欠</th><th class="subheader">ご寄付額</th>
               <th class="subheader">出欠</th><th class="subheader">ご寄付額</th>
               <th class="subheader">出欠</th><th class="subheader">ご寄付額</th>
             </tr>
@@ -272,7 +292,6 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
               <td><input type="radio" name="fraction" value="1"></td>
               <td><input type="checkbox" name="attendance1" checked></td><td><input type="number" name="donation1" class="donation-input" min="0" step="1" placeholder="0"></td>
               <td><input type="checkbox" name="attendance2"></td><td><input type="number" name="donation2" class="donation-input" min="0" step="1" placeholder="0"></td>
-              <td><input type="checkbox" name="attendance3"></td><td><input type="number" name="donation3" class="donation-input" min="0" step="1" placeholder="0"></td>
             </tr>
           </tbody>
         </table>
@@ -293,7 +312,7 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
 
 </main>
 <script>
-var partyCount = 3;
+var partyCount = 2;
 
 var partyLabels = ["","１次会","２次会","３次会","４次会","５次会","６次会","７次会","８次会","９次会","１０次会"];
 function partyLabel(n) { return partyLabels[n] || n + "次会"; }
@@ -317,6 +336,13 @@ function addParty() {
   item.className = "party-total-item";
   item.innerHTML = '<label>' + label + ' 総額</label><input type="number" class="total-input" id="総額' + n + '" min="0">';
   btn.parentNode.insertBefore(item, btn);
+
+  // colgroup に2列追加（モバイル列幅制御用）
+  var cg = document.getElementById("participantTable").querySelector("colgroup");
+  if (cg) {
+    var ca = document.createElement("col"); ca.className = "col-att"; cg.appendChild(ca);
+    var cd = document.createElement("col"); cd.className = "col-don"; cg.appendChild(cd);
+  }
 
   // ヘッダー1行目：colspan=2 の th 追加
   var thead = document.getElementById("participantTable").getElementsByTagName("thead")[0];
