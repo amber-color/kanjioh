@@ -447,13 +447,26 @@ function calculate() {
     for (var k = 0; k < N; k++) Rsum[k] += resultArray[i][roundedIdx(k, N)] + (Number(resultArray[i][donIdx(k)]) || 0);
   }
 
-  // 幹事に端数を集約
+  // 幹事に端数を集約（出席した会のみ。未出席の会は最大金額の参加者に集約）
   for (var i = 0; i < resultArray.length; i++) {
     if (resultArray[i][2] == 1) {
       var attendedAny = false;
       for (var k = 0; k < N; k++) { if (resultArray[i][attIdx(k)]) attendedAny = true; }
-      if (!attendedAny) { alert("幹事(端数)は、必ず全ての会に出席するようにしてください。"); return; }
-      for (var k = 0; k < N; k++) resultArray[i][roundedIdx(k, N)] += sougaku[k] - Rsum[k];
+      if (!attendedAny) { alert("幹事(端数)は少なくとも1つの会に出席するようにしてください。"); return; }
+      for (var k = 0; k < N; k++) {
+        var diff = sougaku[k] - Rsum[k];
+        if (resultArray[i][attIdx(k)]) {
+          resultArray[i][roundedIdx(k, N)] += diff;
+        } else if (diff !== 0) {
+          var maxI = -1, maxVal = -Infinity;
+          for (var ii = 0; ii < resultArray.length; ii++) {
+            if (resultArray[ii][attIdx(k)] && resultArray[ii][roundedIdx(k, N)] > maxVal) {
+              maxVal = resultArray[ii][roundedIdx(k, N)]; maxI = ii;
+            }
+          }
+          if (maxI >= 0) resultArray[maxI][roundedIdx(k, N)] += diff;
+        }
+      }
     }
   }
 
