@@ -286,6 +286,7 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
   </select>
   <button class="btn-calc" onclick="calculate()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>計算</button>
   <button class="btn-save" onclick="saveAsHTML()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>保存</button>
+  <button id="btnShare" class="btn-save" onclick="copyShareUrl()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>共有</button>
 </div>
 
 <!-- 総額パネル -->
@@ -1069,6 +1070,99 @@ document.getElementById('participantTable').addEventListener('blur', function(e)
 
 // ページロード時の初期値をフォーマット
 document.querySelectorAll('input[name="slope"]').forEach(function(inp) { formatSlope(inp); });
+
+function getShareData() {
+  var rows = document.getElementById('participantTable')
+    .getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+  var participants = [];
+  for (var i = 0; i < rows.length; i++) {
+    var cells = rows[i].getElementsByTagName('td');
+    var p = {
+      n: cells[0].getElementsByTagName('input')[0].value,
+      s: cells[1].getElementsByTagName('input')[0].value,
+      k: cells[2].getElementsByTagName('input')[0].checked,
+      a: [], d: []
+    };
+    for (var k = 0; k < partyCount; k++) {
+      p.a.push(cells[3+2*k].getElementsByTagName('input')[0].checked ? 1 : 0);
+      p.d.push(Number(cells[3+2*k+1].getElementsByTagName('input')[0].value) || 0);
+    }
+    participants.push(p);
+  }
+  return {
+    n: partyCount,
+    u: Number(document.getElementById('roundingUnit').value),
+    t: Array.from({length: partyCount}, function(_, k) {
+      var el = document.getElementById('総額' + (k+1));
+      return el ? (Number(el.value) || 0) : 0;
+    }),
+    p: participants
+  };
+}
+
+function resetToBase() {
+  partyCount = 2;
+  var panel = document.getElementById('partyTotals');
+  var items = panel.querySelectorAll('.party-total-item');
+  for (var i = items.length - 1; i >= 2; i--) items[i].remove();
+  var cg = document.getElementById('participantTable').querySelector('colgroup');
+  var cols = cg.querySelectorAll('col.col-att, col.col-don');
+  for (var i = cols.length - 1; i >= 4; i--) cols[i].remove();
+  var thead = document.getElementById('participantTable').getElementsByTagName('thead')[0];
+  var partyCols = thead.rows[0].querySelectorAll('.party-col');
+  for (var i = partyCols.length - 1; i >= 2; i--) partyCols[i].remove();
+  var subheaders = thead.rows[1].querySelectorAll('.subheader');
+  for (var i = subheaders.length - 1; i >= 4; i--) subheaders[i].remove();
+  var tbody = document.getElementById('participantTable').getElementsByTagName('tbody')[0];
+  while (tbody.rows.length > 0) tbody.deleteRow(0);
+}
+
+function applyShareData(data) {
+  resetToBase();
+  for (var k = 2; k < data.n; k++) addParty();
+  var tbody = document.getElementById('participantTable').getElementsByTagName('tbody')[0];
+  for (var i = 0; i < data.p.length; i++) {
+    addRow();
+    var row = tbody.rows[tbody.rows.length - 1];
+    var cells = row.getElementsByTagName('td');
+    cells[0].getElementsByTagName('input')[0].value = data.p[i].n;
+    cells[1].getElementsByTagName('input')[0].value = data.p[i].s;
+    formatSlope(cells[1].getElementsByTagName('input')[0]);
+    cells[2].getElementsByTagName('input')[0].checked = !!data.p[i].k;
+    for (var k = 0; k < data.n; k++) {
+      cells[3+2*k].getElementsByTagName('input')[0].checked = !!data.p[i].a[k];
+      var dv = data.p[i].d[k];
+      cells[3+2*k+1].getElementsByTagName('input')[0].value = dv ? dv : '';
+    }
+  }
+  for (var k = 0; k < data.n; k++) {
+    var el = document.getElementById('総額' + (k+1));
+    if (el) el.value = data.t[k] || '';
+  }
+  document.getElementById('roundingUnit').value = String(data.u);
+}
+
+function copyShareUrl() {
+  var encoded = btoa(unescape(encodeURIComponent(JSON.stringify(getShareData()))));
+  history.replaceState(null, '', '#' + encoded);
+  var btn = document.getElementById('btnShare');
+  var orig = btn.innerHTML;
+  navigator.clipboard.writeText(location.href).then(function() {
+    btn.textContent = 'コピー完了';
+    setTimeout(function() { btn.innerHTML = orig; }, 2000);
+  }).catch(function() {
+    prompt('以下のURLをコピーしてください', location.href);
+  });
+}
+
+(function() {
+  var hash = location.hash.slice(1);
+  if (!hash) return;
+  try {
+    var data = JSON.parse(decodeURIComponent(escape(atob(hash))));
+    applyShareData(data);
+  } catch(e) {}
+})();
 </script>
 
 <div class="modal-overlay" id="warnModal">
