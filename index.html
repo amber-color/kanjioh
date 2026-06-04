@@ -638,6 +638,11 @@ function calculate() {
             document.getElementById('warnModal').classList.remove('visible');
           }; })(sugU.unit, sugU.arr);
           actEl.appendChild(b1);
+        } else if (unit > 100) {
+          var note = document.createElement('p');
+          note.style.cssText = 'font-size:0.8rem;color:var(--text);margin-top:6px;';
+          note.textContent = '丸め単位を100円にしても解消されません。';
+          actEl.appendChild(note);
         }
         var sugSl = findSuggestedSlope(inputSnapshot, unit, N, kanjiI);
         if (sugSl !== null) {
@@ -867,7 +872,7 @@ function satisfiesIdeal(arr, N, kIdx) {
       if (i === kIdx || !arr[i][attIdx(k)]) continue;
       var sl  = Number(arr[i][1]);
       var amt = arr[i][roundedIdx(k, N)];
-      if (sl === kSl && amt >= kAmt) return false;
+      if (sl === kSl && amt > kAmt) return false;
       if (sl >  kSl  && amt <= kAmt) return false;
     }
   }
