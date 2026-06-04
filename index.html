@@ -631,10 +631,17 @@ function calculate() {
           }; })(sugU.unit, sugU.arr);
           actEl.appendChild(b1);
         } else if (unit > 1) {
-          var note = document.createElement('p');
-          note.style.cssText = 'font-size:0.8rem;color:var(--text);margin-top:6px;';
-          note.textContent = '丸め単位を1円にしても解消されません。';
-          actEl.appendChild(note);
+          var clone1 = preLRM.map(function(r) { return r.slice(); });
+          applyLRM(clone1, sougaku, 1, N, kanjiI);
+          var b1fb = document.createElement('button');
+          b1fb.className = 'btn-calc';
+          b1fb.textContent = '丸め単位を 1 円に変更して適用（差額最小）';
+          b1fb.onclick = (function(arr) { return function() {
+            document.getElementById('roundingUnit').value = 1;
+            renderToDOM(arr, N, sougaku, gokifusum);
+            document.getElementById('warnModal').classList.remove('visible');
+          }; })(clone1);
+          actEl.appendChild(b1fb);
         }
       }
       modalEl.classList.add('visible');
