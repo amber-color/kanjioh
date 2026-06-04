@@ -68,8 +68,8 @@ button {
   display: inline-flex; align-items: center; gap: 5px;
 }
 button svg { pointer-events: none; flex-shrink: 0; }
-.btn-add    { background: #ecfdf5; color: #047857; border: 1.5px solid #6ee7b7; }
-.btn-add:hover    { background: #d1fae5; transform: translateY(-1px); }
+.btn-add    { background: white; color: var(--text); border: 1.5px solid var(--border); }
+.btn-add:hover    { background: #f8fafc; transform: translateY(-1px); }
 .btn-calc   { background: var(--primary); color: white; }
 .btn-calc:hover   { background: var(--primary-dark); box-shadow: var(--shadow-md); transform: translateY(-1px); }
 .slope-group {
@@ -81,10 +81,10 @@ button svg { pointer-events: none; flex-shrink: 0; }
   color: var(--text-muted); display: flex; align-items: center; white-space: nowrap;
   border-right: 1.5px solid var(--border);
 }
-.btn-steep  { background: #fff7ed; color: #c2410c; border: none; border-radius: 0; padding: 0 12px; }
-.btn-steep:hover  { background: #ffedd5; transform: none; }
-.btn-gentle { background: #eff6ff; color: #1d4ed8; border: none; border-left: 1.5px solid var(--border); border-radius: 0; padding: 0 12px; }
-.btn-gentle:hover { background: #dbeafe; transform: none; }
+.btn-steep  { background: white; color: var(--text); border: none; border-radius: 0; padding: 0 12px; }
+.btn-steep:hover  { background: #f8fafc; transform: none; }
+.btn-gentle { background: white; color: var(--text); border: none; border-left: 1.5px solid var(--border); border-radius: 0; padding: 0 12px; }
+.btn-gentle:hover { background: #f8fafc; transform: none; }
 .select-unit {
   padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 8px;
   font-size: 0.875rem; font-weight: 600; font-family: inherit; background: white;
@@ -221,10 +221,10 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
   font-size: 0.875rem; border: 2px dashed var(--border);
 }
 
-.btn-save { background: #faf5ff; color: #7c3aed; border: 1.5px solid #c4b5fd; }
-.btn-save:hover { background: #ede9fe; transform: translateY(-1px); }
-.btn-copy { background: #f0fdf4; color: #047857; border: 1.5px solid #6ee7b7; }
-.btn-copy:hover { background: #d1fae5; transform: translateY(-1px); }
+.btn-save { background: white; color: var(--text); border: 1.5px solid var(--border); }
+.btn-save:hover { background: #f8fafc; transform: translateY(-1px); }
+.btn-copy { background: white; color: var(--text); border: 1.5px solid var(--border); }
+.btn-copy:hover { background: #f8fafc; transform: translateY(-1px); }
 .result-actions { padding: 10px 16px; border-top: 1px solid var(--border); }
 
 /* Modal */
@@ -274,14 +274,14 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
 
 <div class="btn-row">
   <button class="btn-add" onclick="addRow()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>参加者追加</button>
-  <button class="btn-save" onclick="saveAsHTML()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>HTML保存</button>
+  <button class="btn-save" onclick="saveAsHTML()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>保存</button>
   <select id="roundingUnit" class="select-unit">
     <option value="1">1円単位</option>
     <option value="100">100円単位</option>
     <option value="500">500円単位</option>
     <option value="1000" selected>1000円単位</option>
   </select>
-  <button class="btn-calc" onclick="calculate()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>計算する</button>
+  <button class="btn-calc" onclick="calculate()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>計算</button>
   <div class="slope-group">
     <span class="slope-label">傾斜微調整</span>
     <button class="btn-steep" onclick="steepSlope()" title="傾斜を急にする"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></button>
