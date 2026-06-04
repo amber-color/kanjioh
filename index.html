@@ -542,20 +542,15 @@ function calculate() {
   // netIdx確定後スナップショット（LRM再シミュレーション用）
   var preLRM = resultArray.map(function(r) { return r.slice(); });
   var inputSnapshot = {
+    names:   resultArray.map(function(r) { return r[0]; }),
     slopes:  resultArray.map(function(r) { return Number(r[1]); }),
+    kanji:   resultArray.map(function(r) { return r[2]; }),
     att:     resultArray.map(function(r) { var a=[]; for(var kk=0;kk<N;kk++) a.push(r[attIdx(kk)]); return a; }),
     don:     resultArray.map(function(r) { var d=[]; for(var kk=0;kk<N;kk++) d.push(Number(r[donIdx(kk)])||0); return d; }),
     sougaku: sougaku.slice()
   };
 
   applyLRM(resultArray, sougaku, unit, N, kanjiI);
-
-  // 計列追加
-  for (var i = 0; i < resultArray.length; i++) {
-    var t = 0;
-    for (var k = 0; k < N; k++) t += Number(resultArray[i][roundedIdx(k, N)]);
-    resultArray[i][Ki] = t;
-  }
 
   // 幹事マイナス警告（丸め後の精算額 または 丸め前のネット額がマイナスなら警告）
   var warnLines = [];
@@ -636,12 +631,12 @@ function calculate() {
         if (sugU !== null) {
           var b1 = document.createElement('button');
           b1.className = 'btn-calc';
-          b1.textContent = '丸め単位を ' + sugU + ' 円に変更して再計算';
-          b1.onclick = (function(u) { return function() {
+          b1.textContent = '丸め単位を ' + sugU.unit + ' 円に変更して適用';
+          b1.onclick = (function(u, arr) { return function() {
             document.getElementById('roundingUnit').value = u;
+            renderToDOM(arr, N, sougaku, gokifusum);
             document.getElementById('warnModal').classList.remove('visible');
-            calculate();
-          }; })(sugU);
+          }; })(sugU.unit, sugU.arr);
           actEl.appendChild(b1);
         }
         var sugSl = findSuggestedSlope(inputSnapshot, unit, N, kanjiI);
@@ -649,9 +644,9 @@ function calculate() {
           var b2 = document.createElement('button');
           b2.className = 'btn-calc';
           b2.textContent = sugSl.unit !== unit
-            ? '幹事の傾斜を ' + sugSl.slope + '、丸め単位を ' + sugSl.unit + ' 円に変更して再計算'
-            : '幹事の傾斜を ' + sugSl.slope + ' に変更して再計算';
-          b2.onclick = (function(sl, u) { return function() {
+            ? '幹事の傾斜を ' + sugSl.slope + '、丸め単位を ' + sugSl.unit + ' 円に変更して適用'
+            : '幹事の傾斜を ' + sugSl.slope + ' に変更して適用';
+          b2.onclick = (function(sl, u, arr) { return function() {
             var trows = document.getElementById('participantTable').tBodies[0].rows;
             for (var r = 0; r < trows.length; r++) {
               var chk = trows[r].cells[2].getElementsByTagName('input')[0];
@@ -661,9 +656,9 @@ function calculate() {
               }
             }
             document.getElementById('roundingUnit').value = u;
+            renderToDOM(arr, N, sougaku, gokifusum);
             document.getElementById('warnModal').classList.remove('visible');
-            calculate();
-          }; })(sugSl.slope, sugSl.unit);
+          }; })(sugSl.slope, sugSl.unit, sugSl.arr);
           actEl.appendChild(b2);
         }
       }
@@ -671,54 +666,7 @@ function calculate() {
     }
   }
 
-  // フッター・ヘッダー行
-  var makeRow = function(name, vals, totalVal) {
-    var row = new Array(Ki + 1).fill("");
-    row[0] = name; row[3] = "1";
-    for (var k = 0; k < N; k++) row[roundedIdx(k, N)] = vals[k];
-    row[Ki] = totalVal;
-    return row;
-  };
-  resultArray.push(makeRow("ご寄付", gokifusum, gokifusum.reduce((a,b)=>a+b,0)));
-  resultArray.push(makeRow("総額",   sougaku,   sougaku.reduce((a,b)=>a+b,0)));
-
-  var headerRow = new Array(Ki + 1).fill("");
-  headerRow[3] = "1";
-  for (var k = 0; k < N; k++) headerRow[roundedIdx(k, N)] = partyLabel(k+1);
-  headerRow[Ki] = "計";
-  resultArray.unshift(headerRow);
-
-  // テーブル生成
-  document.getElementById("resultArea").style.display = "";
-  document.getElementById("resultPlaceholder").style.display = "none";
-  var container = document.getElementById("resultTable");
-  container.innerHTML = "";
-  container.appendChild(generateTable(resultArray, N, "R"));
-
-  // 不要列削除（descending）
-  var delIdx = [];
-  for (var d = 3 + 4*N - 1; d >= 1; d--) delIdx.push(d);
-  deleteColumn("R", delIdx);
-  // 残り: 0=name, 1..N=rounded_k, N+1=計
-
-  // 総額ゼロの次会列を末尾から削除
-  var lastActive = 0;
-  for (var k = 0; k < N; k++) { if (sougaku[k] > 0) lastActive = k + 1; }
-  if (lastActive === 0) lastActive = 1;
-  if (lastActive === 1) {
-    var toDel = [];
-    for (var d = N + 1; d >= 2; d--) toDel.push(d);
-    if (toDel.length) deleteColumn("R", toDel);
-  } else if (lastActive < N) {
-    var toDel = [];
-    for (var d = N; d >= lastActive + 1; d--) toDel.push(d);
-    deleteColumn("R", toDel);
-  }
-
-  // 寄付なしならご寄付行削除
-  if (gokifusum.reduce((a,b)=>a+b,0) == 0) document.getElementById("R").deleteRow(resultArray.length - 2);
-
-  setupResultEditing(sougaku, lastActive);
+  renderToDOM(resultArray, N, sougaku, gokifusum);
 }
 
 function setupResultEditing(sougakuVals, lastActive) {
@@ -932,7 +880,7 @@ function findSuggestedUnit(preLRM, sougaku, currentUnit, N, kIdx) {
     var u = candidates[ci];
     var clone = preLRM.map(function(r) { return r.slice(); });
     applyLRM(clone, sougaku, u, N, kIdx);
-    if (satisfiesIdeal(clone, N, kIdx)) return u;
+    if (satisfiesIdeal(clone, N, kIdx)) return { unit: u, arr: clone };
   }
   return null;
 }
@@ -942,7 +890,9 @@ var _unitForSim = 1000;
 function simulateWithSlope(snap, newKanjiSlope, N, kIdx) {
   var arr = snap.att.map(function(att, i) {
     var row = new Array(3 + 5*N + 1).fill(0);
+    row[0] = snap.names[i];
     row[1] = (i === kIdx) ? newKanjiSlope : snap.slopes[i];
+    row[2] = snap.kanji[i];
     for (var k = 0; k < N; k++) { row[attIdx(k)] = att[k]; row[donIdx(k)] = snap.don[i][k]; }
     return row;
   });
@@ -977,10 +927,57 @@ function findSuggestedSlope(snap, currentUnit, N, kIdx) {
     for (var ui = 0; ui < unitCands.length; ui++) {
       _unitForSim = unitCands[ui];
       var sim = simulateWithSlope(snap, newSl, N, kIdx);
-      if (satisfiesIdeal(sim, N, kIdx)) return { slope: newSl, unit: unitCands[ui] };
+      if (satisfiesIdeal(sim, N, kIdx)) return { slope: newSl, unit: unitCands[ui], arr: sim };
     }
   }
   return null;
+}
+
+function renderToDOM(srcArr, N, sougaku, gokifusum) {
+  var Ki = keiIdx(N);
+  var arr = srcArr.map(function(r) { return r.slice(); });
+  // Ki列追加
+  for (var i = 0; i < arr.length; i++) {
+    var t = 0;
+    for (var k = 0; k < N; k++) t += Number(arr[i][roundedIdx(k, N)]);
+    arr[i][Ki] = t;
+  }
+  // フッター行
+  var makeR = function(name, vals, tot) {
+    var row = new Array(Ki + 1).fill(""); row[0] = name; row[3] = "1";
+    for (var k = 0; k < N; k++) row[roundedIdx(k, N)] = vals[k];
+    row[Ki] = tot; return row;
+  };
+  arr.push(makeR("ご寄付", gokifusum, gokifusum.reduce(function(a,b){return a+b;},0)));
+  arr.push(makeR("総額",   sougaku,   sougaku.reduce(function(a,b){return a+b;},0)));
+  // ヘッダー行
+  var hRow = new Array(Ki + 1).fill(""); hRow[3] = "1";
+  for (var k = 0; k < N; k++) hRow[roundedIdx(k, N)] = partyLabel(k + 1);
+  hRow[Ki] = "計";
+  arr.unshift(hRow);
+  // テーブル描画
+  document.getElementById("resultArea").style.display = "";
+  document.getElementById("resultPlaceholder").style.display = "none";
+  var container = document.getElementById("resultTable");
+  container.innerHTML = "";
+  container.appendChild(generateTable(arr, N, "R"));
+  // 不要列削除
+  var delIdx = [];
+  for (var d = 3 + 4*N - 1; d >= 1; d--) delIdx.push(d);
+  deleteColumn("R", delIdx);
+  // 総額ゼロ列削除
+  var lastActive = 0;
+  for (var k = 0; k < N; k++) { if (sougaku[k] > 0) lastActive = k + 1; }
+  if (lastActive === 0) lastActive = 1;
+  if (lastActive === 1) {
+    var toDel = []; for (var d = N + 1; d >= 2; d--) toDel.push(d);
+    if (toDel.length) deleteColumn("R", toDel);
+  } else if (lastActive < N) {
+    var toDel = []; for (var d = N; d >= lastActive + 1; d--) toDel.push(d);
+    deleteColumn("R", toDel);
+  }
+  if (gokifusum.reduce(function(a,b){return a+b;},0) === 0) document.getElementById("R").deleteRow(arr.length - 2);
+  setupResultEditing(sougaku, lastActive);
 }
 
 function showError(msg) {
