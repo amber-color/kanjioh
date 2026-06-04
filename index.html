@@ -648,8 +648,10 @@ function calculate() {
         if (sugSl !== null) {
           var b2 = document.createElement('button');
           b2.className = 'btn-calc';
-          b2.textContent = '幹事の傾斜を ' + sugSl + ' に変更して再計算';
-          b2.onclick = (function(sl) { return function() {
+          b2.textContent = sugSl.unit !== unit
+            ? '幹事の傾斜を ' + sugSl.slope + '、丸め単位を ' + sugSl.unit + ' 円に変更して再計算'
+            : '幹事の傾斜を ' + sugSl.slope + ' に変更して再計算';
+          b2.onclick = (function(sl, u) { return function() {
             var trows = document.getElementById('participantTable').tBodies[0].rows;
             for (var r = 0; r < trows.length; r++) {
               var chk = trows[r].cells[2].getElementsByTagName('input')[0];
@@ -658,9 +660,10 @@ function calculate() {
                 break;
               }
             }
+            document.getElementById('roundingUnit').value = u;
             document.getElementById('warnModal').classList.remove('visible');
             calculate();
-          }; })(sugSl);
+          }; })(sugSl.slope, sugSl.unit);
           actEl.appendChild(b2);
         }
       }
@@ -958,7 +961,6 @@ function simulateWithSlope(snap, newKanjiSlope, N, kIdx) {
 }
 
 function findSuggestedSlope(snap, currentUnit, N, kIdx) {
-  _unitForSim = currentUnit;
   var kSl = snap.slopes[kIdx];
   var upper = Infinity;
   for (var i = 0; i < snap.slopes.length; i++) {
@@ -966,12 +968,17 @@ function findSuggestedSlope(snap, currentUnit, N, kIdx) {
     var s = snap.slopes[i];
     if (s > kSl && s < upper) upper = s;
   }
-  if (!isFinite(upper)) return null;
-  var maxDelta = Math.floor((upper - kSl - 0.01) * 10) / 10;
+  // upper=Infinity（全員同傾斜など上位がいない）場合も最大1.0まで探索
+  var maxDelta = isFinite(upper) ? Math.floor((upper - kSl - 0.01) * 10) / 10 : 1.0;
+  // 現在の単位、次いで小さい選択肢の順で試す
+  var unitCands = [currentUnit].concat([500, 100].filter(function(u) { return u < currentUnit; }));
   for (var d = 1; d * 0.1 <= maxDelta + 0.001; d++) {
     var newSl = Math.round((kSl + d * 0.1) * 10) / 10;
-    var sim = simulateWithSlope(snap, newSl, N, kIdx);
-    if (satisfiesIdeal(sim, N, kIdx)) return newSl;
+    for (var ui = 0; ui < unitCands.length; ui++) {
+      _unitForSim = unitCands[ui];
+      var sim = simulateWithSlope(snap, newSl, N, kIdx);
+      if (satisfiesIdeal(sim, N, kIdx)) return { slope: newSl, unit: unitCands[ui] };
+    }
   }
   return null;
 }
