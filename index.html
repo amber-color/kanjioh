@@ -539,89 +539,16 @@ function calculate() {
   for (var k = 0; k < N; k++) { if (resultArray[kanjiI][attIdx(k)]) attendedAny = true; }
   if (!attendedAny) { showError('幹事(端数)は少なくとも1つの会に出席するようにしてください。'); return; }
 
-  for (var k = 0; k < N; k++) {
-    // Step 1: Math.round 基本丸め
-    for (var i = 0; i < resultArray.length; i++) {
-      resultArray[i][roundedIdx(k, N)] = Math.round(resultArray[i][netIdx(k, N)] / unit) * unit;
-    }
+  // netIdx確定後スナップショット（LRM再シミュレーション用）
+  var preLRM = resultArray.map(function(r) { return r.slice(); });
+  var inputSnapshot = {
+    slopes:  resultArray.map(function(r) { return Number(r[1]); }),
+    att:     resultArray.map(function(r) { var a=[]; for(var kk=0;kk<N;kk++) a.push(r[attIdx(kk)]); return a; }),
+    don:     resultArray.map(function(r) { var d=[]; for(var kk=0;kk<N;kk++) d.push(Number(r[donIdx(kk)])||0); return d; }),
+    sougaku: sougaku.slice()
+  };
 
-    // Step 2: 合計誤差を計算
-    var Rk = 0;
-    for (var i = 0; i < resultArray.length; i++) {
-      Rk += resultArray[i][roundedIdx(k, N)] + (Number(resultArray[i][donIdx(k)]) || 0);
-    }
-    var diff = sougaku[k] - Rk;
-    var diffUnits = Math.round(diff / unit); // ±unit を何人に配るか
-    var remainder = diff - diffUnits * unit;  // 幹事が吸収する残余（< unit/2）
-
-    // Step 3: 非幹事を同傾斜グループ単位で ±unit 調整、余剰は幹事が吸収
-    if (diffUnits !== 0) {
-      var slopeGrpMap = {};
-      for (var i = 0; i < resultArray.length; i++) {
-        if (i === kanjiI || !resultArray[i][attIdx(k)]) continue;
-        var sk = Number(resultArray[i][1]).toFixed(1);
-        if (!slopeGrpMap[sk]) slopeGrpMap[sk] = [];
-        slopeGrpMap[sk].push(i);
-      }
-      var slopeGrps = [];
-      for (var sk in slopeGrpMap) {
-        if (!Object.prototype.hasOwnProperty.call(slopeGrpMap, sk)) continue;
-        var grpMbrs = slopeGrpMap[sk];
-        var grpErr = resultArray[grpMbrs[0]][netIdx(k, N)] - resultArray[grpMbrs[0]][roundedIdx(k, N)];
-        slopeGrps.push({ members: grpMbrs, err: grpErr });
-      }
-      if (diffUnits > 0) {
-        slopeGrps.sort(function(a, b) { return b.err - a.err; });
-      } else {
-        slopeGrps.sort(function(a, b) { return a.err - b.err; });
-      }
-      var adj = diffUnits > 0 ? unit : -unit;
-      var rem = Math.abs(diffUnits);
-      for (var g = 0; g < slopeGrps.length; g++) {
-        if (rem >= slopeGrps[g].members.length) {
-          for (var m = 0; m < slopeGrps[g].members.length; m++) {
-            resultArray[slopeGrps[g].members[m]][roundedIdx(k, N)] += adj;
-          }
-          rem -= slopeGrps[g].members.length;
-        }
-      }
-      if (rem > 0) {
-        if (resultArray[kanjiI][attIdx(k)]) {
-          resultArray[kanjiI][roundedIdx(k, N)] += rem * adj;
-        } else {
-          var fbList = [];
-          for (var i = 0; i < resultArray.length; i++) {
-            if (!resultArray[i][attIdx(k)]) continue;
-            fbList.push({ idx: i, err: resultArray[i][netIdx(k, N)] - resultArray[i][roundedIdx(k, N)] });
-          }
-          if (diffUnits > 0) {
-            fbList.sort(function(a, b) { return b.err - a.err; });
-          } else {
-            fbList.sort(function(a, b) { return a.err - b.err; });
-          }
-          for (var j = 0; j < rem && j < fbList.length; j++) {
-            resultArray[fbList[j].idx][roundedIdx(k, N)] += adj;
-          }
-        }
-      }
-    }
-
-    // Step 4: 端数（< unit/2）を、マイナスにならない最大金額者が吸収（幹事優先）
-    if (remainder !== 0) {
-      var absorbI = -1;
-      if (resultArray[kanjiI][attIdx(k)] && resultArray[kanjiI][roundedIdx(k, N)] + remainder >= 0) {
-        absorbI = kanjiI;
-      } else {
-        var maxVal = -1;
-        for (var i = 0; i < resultArray.length; i++) {
-          if (resultArray[i][attIdx(k)] && resultArray[i][roundedIdx(k, N)] + remainder >= 0 && resultArray[i][roundedIdx(k, N)] > maxVal) {
-            maxVal = resultArray[i][roundedIdx(k, N)]; absorbI = i;
-          }
-        }
-      }
-      if (absorbI >= 0) resultArray[absorbI][roundedIdx(k, N)] += remainder;
-    }
-  }
+  applyLRM(resultArray, sougaku, unit, N, kanjiI);
 
   // 計列追加
   for (var i = 0; i < resultArray.length; i++) {
@@ -689,6 +616,9 @@ function calculate() {
   if (gokifuWarn.length > 0) {
     msgParts.push('<b>ご寄付が多すぎます</b><br>' + gokifuWarn.join('<br>'));
   }
+  var actEl = document.getElementById('warnModalActions');
+  if (actEl) actEl.innerHTML = '';
+
   if (msgParts.length > 0) {
     var titleEl = document.getElementById('warnModalTitle');
     var msgEl   = document.getElementById('warnModalMsg');
@@ -701,6 +631,39 @@ function calculate() {
         slopeMismatch.length > 0    ? '⚠️ 同傾斜の精算額が一致していません' :
                                       '⚠️ ご寄付の計算に過剰が発生しています';
       msgEl.innerHTML = msgParts.join('<br><br>');
+      if (actEl && kanjiSlopeLow.length > 0) {
+        var sugU = findSuggestedUnit(preLRM, sougaku, unit, N, kanjiI);
+        if (sugU !== null) {
+          var b1 = document.createElement('button');
+          b1.className = 'btn-calc';
+          b1.textContent = '丸め単位を ' + sugU + ' 円に変更して再計算';
+          b1.onclick = (function(u) { return function() {
+            document.getElementById('roundingUnit').value = u;
+            document.getElementById('warnModal').classList.remove('visible');
+            calculate();
+          }; })(sugU);
+          actEl.appendChild(b1);
+        }
+        var sugSl = findSuggestedSlope(inputSnapshot, unit, N, kanjiI);
+        if (sugSl !== null) {
+          var b2 = document.createElement('button');
+          b2.className = 'btn-calc';
+          b2.textContent = '幹事の傾斜を ' + sugSl + ' に変更して再計算';
+          b2.onclick = (function(sl) { return function() {
+            var trows = document.getElementById('participantTable').tBodies[0].rows;
+            for (var r = 0; r < trows.length; r++) {
+              var chk = trows[r].cells[2].getElementsByTagName('input')[0];
+              if (chk && chk.checked) {
+                trows[r].cells[1].getElementsByTagName('input')[0].value = sl;
+                break;
+              }
+            }
+            document.getElementById('warnModal').classList.remove('visible');
+            calculate();
+          }; })(sugSl);
+          actEl.appendChild(b2);
+        }
+      }
       modalEl.classList.add('visible');
     }
   }
@@ -875,6 +838,144 @@ function generateTable(data, N, idname) {
   return table;
 }
 
+function applyLRM(arr, sougaku, unitVal, N, kIdx) {
+  for (var k = 0; k < N; k++) {
+    for (var i = 0; i < arr.length; i++)
+      arr[i][roundedIdx(k, N)] = Math.round(arr[i][netIdx(k, N)] / unitVal) * unitVal;
+    var Rk = 0;
+    for (var i = 0; i < arr.length; i++)
+      Rk += arr[i][roundedIdx(k, N)] + (Number(arr[i][donIdx(k)]) || 0);
+    var diff = sougaku[k] - Rk;
+    var diffUnits = Math.round(diff / unitVal);
+    var remainder = diff - diffUnits * unitVal;
+    if (diffUnits !== 0) {
+      var slopeGrpMap = {};
+      for (var i = 0; i < arr.length; i++) {
+        if (i === kIdx || !arr[i][attIdx(k)]) continue;
+        var sk = Number(arr[i][1]).toFixed(1);
+        if (!slopeGrpMap[sk]) slopeGrpMap[sk] = [];
+        slopeGrpMap[sk].push(i);
+      }
+      var slopeGrps = [];
+      for (var sk in slopeGrpMap) {
+        if (!Object.prototype.hasOwnProperty.call(slopeGrpMap, sk)) continue;
+        var grpMbrs = slopeGrpMap[sk];
+        var grpErr = arr[grpMbrs[0]][netIdx(k, N)] - arr[grpMbrs[0]][roundedIdx(k, N)];
+        slopeGrps.push({ members: grpMbrs, err: grpErr });
+      }
+      if (diffUnits > 0) { slopeGrps.sort(function(a,b){return b.err-a.err;}); }
+      else               { slopeGrps.sort(function(a,b){return a.err-b.err;}); }
+      var adj = diffUnits > 0 ? unitVal : -unitVal;
+      var rem = Math.abs(diffUnits);
+      for (var g = 0; g < slopeGrps.length; g++) {
+        if (rem >= slopeGrps[g].members.length) {
+          for (var m = 0; m < slopeGrps[g].members.length; m++)
+            arr[slopeGrps[g].members[m]][roundedIdx(k, N)] += adj;
+          rem -= slopeGrps[g].members.length;
+        }
+      }
+      if (rem > 0) {
+        if (arr[kIdx][attIdx(k)]) {
+          arr[kIdx][roundedIdx(k, N)] += rem * adj;
+        } else {
+          var fbList = [];
+          for (var i = 0; i < arr.length; i++) {
+            if (!arr[i][attIdx(k)]) continue;
+            fbList.push({ idx: i, err: arr[i][netIdx(k, N)] - arr[i][roundedIdx(k, N)] });
+          }
+          if (diffUnits > 0) { fbList.sort(function(a,b){return b.err-a.err;}); }
+          else               { fbList.sort(function(a,b){return a.err-b.err;}); }
+          for (var j = 0; j < rem && j < fbList.length; j++)
+            arr[fbList[j].idx][roundedIdx(k, N)] += adj;
+        }
+      }
+    }
+    if (remainder !== 0) {
+      var absorbI = -1;
+      if (arr[kIdx][attIdx(k)] && arr[kIdx][roundedIdx(k, N)] + remainder >= 0) {
+        absorbI = kIdx;
+      } else {
+        var maxVal = -1;
+        for (var i = 0; i < arr.length; i++) {
+          if (arr[i][attIdx(k)] && arr[i][roundedIdx(k, N)] + remainder >= 0 && arr[i][roundedIdx(k, N)] > maxVal) {
+            maxVal = arr[i][roundedIdx(k, N)]; absorbI = i;
+          }
+        }
+      }
+      if (absorbI >= 0) arr[absorbI][roundedIdx(k, N)] += remainder;
+    }
+  }
+}
+
+function satisfiesIdeal(arr, N, kIdx) {
+  for (var k = 0; k < N; k++) {
+    if (!arr[kIdx][attIdx(k)]) continue;
+    var kAmt = arr[kIdx][roundedIdx(k, N)];
+    var kSl  = Number(arr[kIdx][1]);
+    for (var i = 0; i < arr.length; i++) {
+      if (i === kIdx || !arr[i][attIdx(k)]) continue;
+      var sl  = Number(arr[i][1]);
+      var amt = arr[i][roundedIdx(k, N)];
+      if (sl === kSl && amt >= kAmt) return false;
+      if (sl >  kSl  && amt <= kAmt) return false;
+    }
+  }
+  return true;
+}
+
+function findSuggestedUnit(preLRM, sougaku, currentUnit, N, kIdx) {
+  var candidates = [500, 100].filter(function(c) { return c < currentUnit; });
+  for (var ci = 0; ci < candidates.length; ci++) {
+    var u = candidates[ci];
+    var clone = preLRM.map(function(r) { return r.slice(); });
+    applyLRM(clone, sougaku, u, N, kIdx);
+    if (satisfiesIdeal(clone, N, kIdx)) return u;
+  }
+  return null;
+}
+
+var _unitForSim = 1000;
+
+function simulateWithSlope(snap, newKanjiSlope, N, kIdx) {
+  var arr = snap.att.map(function(att, i) {
+    var row = new Array(3 + 5*N + 1).fill(0);
+    row[1] = (i === kIdx) ? newKanjiSlope : snap.slopes[i];
+    for (var k = 0; k < N; k++) { row[attIdx(k)] = att[k]; row[donIdx(k)] = snap.don[i][k]; }
+    return row;
+  });
+  var keishasum = new Array(N).fill(0);
+  for (var i = 0; i < arr.length; i++)
+    for (var k = 0; k < N; k++) keishasum[k] += arr[i][1] * arr[i][attIdx(k)];
+  for (var i = 0; i < arr.length; i++) {
+    for (var k = 0; k < N; k++) {
+      arr[i][shareIdx(k, N)] = keishasum[k] > 0
+        ? snap.sougaku[k] * arr[i][1] * arr[i][attIdx(k)] / keishasum[k] : 0;
+      arr[i][netIdx(k, N)] = Math.max(0, arr[i][shareIdx(k, N)] - snap.don[i][k]);
+    }
+  }
+  applyLRM(arr, snap.sougaku, _unitForSim, N, kIdx);
+  return arr;
+}
+
+function findSuggestedSlope(snap, currentUnit, N, kIdx) {
+  _unitForSim = currentUnit;
+  var kSl = snap.slopes[kIdx];
+  var upper = Infinity;
+  for (var i = 0; i < snap.slopes.length; i++) {
+    if (i === kIdx) continue;
+    var s = snap.slopes[i];
+    if (s > kSl && s < upper) upper = s;
+  }
+  if (!isFinite(upper)) return null;
+  var maxDelta = Math.floor((upper - kSl - 0.01) * 10) / 10;
+  for (var d = 1; d * 0.1 <= maxDelta + 0.001; d++) {
+    var newSl = Math.round((kSl + d * 0.1) * 10) / 10;
+    var sim = simulateWithSlope(snap, newSl, N, kIdx);
+    if (satisfiesIdeal(sim, N, kIdx)) return newSl;
+  }
+  return null;
+}
+
 function showError(msg) {
   var titleEl = document.getElementById('warnModalTitle');
   var msgEl   = document.getElementById('warnModalMsg');
@@ -1007,6 +1108,7 @@ document.querySelectorAll('input[name="slope"]').forEach(function(inp) { formatS
   <div class="modal-box">
     <h2 id="warnModalTitle"></h2>
     <p id="warnModalMsg"></p>
+    <div id="warnModalActions" style="margin-top:12px;display:flex;flex-direction:column;gap:8px;"></div>
     <button class="btn-calc modal-close" onclick="document.getElementById('warnModal').classList.remove('visible')">閉じる</button>
   </div>
 </div>
