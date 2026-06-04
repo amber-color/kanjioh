@@ -554,29 +554,55 @@ function calculate() {
     var diffUnits = Math.round(diff / unit); // ±unit を何人に配るか
     var remainder = diff - diffUnits * unit;  // 幹事が吸収する残余（< unit/2）
 
-    // Step 3: diffUnits 分を丸め誤差の大きい順に ±unit 調整（幹事優先タイブレーク）
+    // Step 3: 非幹事を同傾斜グループ単位で ±unit 調整、余剰は幹事が吸収
     if (diffUnits !== 0) {
-      var attendees = [];
+      var slopeGrpMap = {};
       for (var i = 0; i < resultArray.length; i++) {
-        if (resultArray[i][attIdx(k)]) {
-          attendees.push({ idx: i, err: resultArray[i][netIdx(k, N)] - resultArray[i][roundedIdx(k, N)] });
-        }
+        if (i === kanjiI || !resultArray[i][attIdx(k)]) continue;
+        var sk = Number(resultArray[i][1]).toFixed(1);
+        if (!slopeGrpMap[sk]) slopeGrpMap[sk] = [];
+        slopeGrpMap[sk].push(i);
+      }
+      var slopeGrps = [];
+      for (var sk in slopeGrpMap) {
+        if (!Object.prototype.hasOwnProperty.call(slopeGrpMap, sk)) continue;
+        var grpMbrs = slopeGrpMap[sk];
+        var grpErr = resultArray[grpMbrs[0]][netIdx(k, N)] - resultArray[grpMbrs[0]][roundedIdx(k, N)];
+        slopeGrps.push({ members: grpMbrs, err: grpErr });
       }
       if (diffUnits > 0) {
-        attendees.sort(function(a, b) {
-          if (b.err !== a.err) return b.err - a.err;
-          return (a.idx === kanjiI) ? -1 : (b.idx === kanjiI) ? 1 : 0;
-        });
+        slopeGrps.sort(function(a, b) { return b.err - a.err; });
       } else {
-        attendees.sort(function(a, b) {
-          if (a.err !== b.err) return a.err - b.err;
-          return (a.idx === kanjiI) ? -1 : (b.idx === kanjiI) ? 1 : 0;
-        });
+        slopeGrps.sort(function(a, b) { return a.err - b.err; });
       }
-      var nAdj = Math.abs(diffUnits);
       var adj = diffUnits > 0 ? unit : -unit;
-      for (var j = 0; j < nAdj && j < attendees.length; j++) {
-        resultArray[attendees[j].idx][roundedIdx(k, N)] += adj;
+      var rem = Math.abs(diffUnits);
+      for (var g = 0; g < slopeGrps.length; g++) {
+        if (rem >= slopeGrps[g].members.length) {
+          for (var m = 0; m < slopeGrps[g].members.length; m++) {
+            resultArray[slopeGrps[g].members[m]][roundedIdx(k, N)] += adj;
+          }
+          rem -= slopeGrps[g].members.length;
+        }
+      }
+      if (rem > 0) {
+        if (resultArray[kanjiI][attIdx(k)]) {
+          resultArray[kanjiI][roundedIdx(k, N)] += rem * adj;
+        } else {
+          var fbList = [];
+          for (var i = 0; i < resultArray.length; i++) {
+            if (!resultArray[i][attIdx(k)]) continue;
+            fbList.push({ idx: i, err: resultArray[i][netIdx(k, N)] - resultArray[i][roundedIdx(k, N)] });
+          }
+          if (diffUnits > 0) {
+            fbList.sort(function(a, b) { return b.err - a.err; });
+          } else {
+            fbList.sort(function(a, b) { return a.err - b.err; });
+          }
+          for (var j = 0; j < rem && j < fbList.length; j++) {
+            resultArray[fbList[j].idx][roundedIdx(k, N)] += adj;
+          }
+        }
       }
     }
 
