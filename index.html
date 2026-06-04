@@ -265,6 +265,7 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
   <button class="btn-add"    onclick="addRow()">＋ 参加者追加</button>
   <button class="btn-save"   onclick="saveAsHTML()">HTML保存</button>
   <select id="roundingUnit" class="select-unit">
+    <option value="1">1円単位</option>
     <option value="100">100円単位</option>
     <option value="500">500円単位</option>
     <option value="1000" selected>1000円単位</option>
@@ -541,15 +542,6 @@ function calculate() {
 
   // netIdx確定後スナップショット（LRM再シミュレーション用）
   var preLRM = resultArray.map(function(r) { return r.slice(); });
-  var inputSnapshot = {
-    names:   resultArray.map(function(r) { return r[0]; }),
-    slopes:  resultArray.map(function(r) { return Number(r[1]); }),
-    kanji:   resultArray.map(function(r) { return r[2]; }),
-    att:     resultArray.map(function(r) { var a=[]; for(var kk=0;kk<N;kk++) a.push(r[attIdx(kk)]); return a; }),
-    don:     resultArray.map(function(r) { var d=[]; for(var kk=0;kk<N;kk++) d.push(Number(r[donIdx(kk)])||0); return d; }),
-    sougaku: sougaku.slice()
-  };
-
   applyLRM(resultArray, sougaku, unit, N, kanjiI);
 
   // 幹事マイナス警告（丸め後の精算額 または 丸め前のネット額がマイナスなら警告）
@@ -638,33 +630,11 @@ function calculate() {
             document.getElementById('warnModal').classList.remove('visible');
           }; })(sugU.unit, sugU.arr);
           actEl.appendChild(b1);
-        } else if (unit > 100) {
+        } else if (unit > 1) {
           var note = document.createElement('p');
           note.style.cssText = 'font-size:0.8rem;color:var(--text);margin-top:6px;';
-          note.textContent = '丸め単位を100円にしても解消されません。';
+          note.textContent = '丸め単位を1円にしても解消されません。';
           actEl.appendChild(note);
-        }
-        var sugSl = findSuggestedSlope(inputSnapshot, unit, N, kanjiI);
-        if (sugSl !== null) {
-          var b2 = document.createElement('button');
-          b2.className = 'btn-calc';
-          b2.textContent = sugSl.unit !== unit
-            ? '幹事の傾斜を ' + sugSl.slope + '、丸め単位を ' + sugSl.unit + ' 円に変更して適用'
-            : '幹事の傾斜を ' + sugSl.slope + ' に変更して適用';
-          b2.onclick = (function(sl, u, arr) { return function() {
-            var trows = document.getElementById('participantTable').tBodies[0].rows;
-            for (var r = 0; r < trows.length; r++) {
-              var chk = trows[r].cells[2].getElementsByTagName('input')[0];
-              if (chk && chk.checked) {
-                trows[r].cells[1].getElementsByTagName('input')[0].value = sl;
-                break;
-              }
-            }
-            document.getElementById('roundingUnit').value = u;
-            renderToDOM(arr, N, sougaku, gokifusum);
-            document.getElementById('warnModal').classList.remove('visible');
-          }; })(sugSl.slope, sugSl.unit, sugSl.arr);
-          actEl.appendChild(b2);
         }
       }
       modalEl.classList.add('visible');
@@ -880,60 +850,12 @@ function satisfiesIdeal(arr, N, kIdx) {
 }
 
 function findSuggestedUnit(preLRM, sougaku, currentUnit, N, kIdx) {
-  var candidates = [500, 100].filter(function(c) { return c < currentUnit; });
+  var candidates = [500, 100, 1].filter(function(c) { return c < currentUnit; });
   for (var ci = 0; ci < candidates.length; ci++) {
     var u = candidates[ci];
     var clone = preLRM.map(function(r) { return r.slice(); });
     applyLRM(clone, sougaku, u, N, kIdx);
     if (satisfiesIdeal(clone, N, kIdx)) return { unit: u, arr: clone };
-  }
-  return null;
-}
-
-var _unitForSim = 1000;
-
-function simulateWithSlope(snap, newKanjiSlope, N, kIdx) {
-  var arr = snap.att.map(function(att, i) {
-    var row = new Array(3 + 5*N + 1).fill(0);
-    row[0] = snap.names[i];
-    row[1] = (i === kIdx) ? newKanjiSlope : snap.slopes[i];
-    row[2] = snap.kanji[i];
-    for (var k = 0; k < N; k++) { row[attIdx(k)] = att[k]; row[donIdx(k)] = snap.don[i][k]; }
-    return row;
-  });
-  var keishasum = new Array(N).fill(0);
-  for (var i = 0; i < arr.length; i++)
-    for (var k = 0; k < N; k++) keishasum[k] += arr[i][1] * arr[i][attIdx(k)];
-  for (var i = 0; i < arr.length; i++) {
-    for (var k = 0; k < N; k++) {
-      arr[i][shareIdx(k, N)] = keishasum[k] > 0
-        ? snap.sougaku[k] * arr[i][1] * arr[i][attIdx(k)] / keishasum[k] : 0;
-      arr[i][netIdx(k, N)] = Math.max(0, arr[i][shareIdx(k, N)] - snap.don[i][k]);
-    }
-  }
-  applyLRM(arr, snap.sougaku, _unitForSim, N, kIdx);
-  return arr;
-}
-
-function findSuggestedSlope(snap, currentUnit, N, kIdx) {
-  var kSl = snap.slopes[kIdx];
-  var upper = Infinity;
-  for (var i = 0; i < snap.slopes.length; i++) {
-    if (i === kIdx) continue;
-    var s = snap.slopes[i];
-    if (s > kSl && s < upper) upper = s;
-  }
-  // upper=Infinity（全員同傾斜など上位がいない）場合も最大1.0まで探索
-  var maxDelta = isFinite(upper) ? Math.floor((upper - kSl - 0.01) * 10) / 10 : 1.0;
-  // 現在の単位、次いで小さい選択肢の順で試す
-  var unitCands = [currentUnit].concat([500, 100].filter(function(u) { return u < currentUnit; }));
-  for (var d = 1; d * 0.1 <= maxDelta + 0.001; d++) {
-    var newSl = Math.round((kSl + d * 0.1) * 10) / 10;
-    for (var ui = 0; ui < unitCands.length; ui++) {
-      _unitForSim = unitCands[ui];
-      var sim = simulateWithSlope(snap, newSl, N, kIdx);
-      if (satisfiesIdeal(sim, N, kIdx)) return { slope: newSl, unit: unitCands[ui], arr: sim };
-    }
   }
   return null;
 }
