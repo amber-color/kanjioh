@@ -285,7 +285,6 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
     <option value="1000" selected>1000円単位</option>
   </select>
   <button class="btn-calc" onclick="calculate()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>計算</button>
-  <button class="btn-save" onclick="saveAsHTML()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>保存</button>
   <button id="btnShare" class="btn-save" onclick="copyShareUrl()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>共有</button>
 </div>
 
@@ -1008,45 +1007,6 @@ function copyResultTable() {
   window.getSelection().removeAllRanges();
 }
 
-function saveAsHTML() {
-  var clone = document.documentElement.cloneNode(true);
-
-  // 現在の入力値をクローンの属性に反映
-  var origInputs = document.querySelectorAll('input, select');
-  var cloneInputs = clone.querySelectorAll('input, select');
-  for (var i = 0; i < origInputs.length; i++) {
-    var orig = origInputs[i], cl = cloneInputs[i];
-    if (orig.type === 'checkbox' || orig.type === 'radio') {
-      if (orig.checked) cl.setAttribute('checked', ''); else cl.removeAttribute('checked');
-    } else if (orig.tagName === 'SELECT') {
-      Array.from(cl.options).forEach(function(opt, j) {
-        if (j === orig.selectedIndex) opt.setAttribute('selected', ''); else opt.removeAttribute('selected');
-      });
-    } else {
-      cl.setAttribute('value', orig.value);
-    }
-  }
-
-  // モーダルを閉じた状態にする
-  var m = clone.getElementById ? clone.getElementById('warnModal') : clone.querySelector('#warnModal');
-  if (m) m.classList.remove('visible');
-
-  // partyCount を現在値で上書き
-  var html = '<!DOCTYPE html>\n' + clone.outerHTML;
-  html = html.replace(/var partyCount = \d+;/, 'var partyCount = ' + partyCount + ';');
-
-  // yyyymmdd.html でダウンロード（data: URI はローカルファイルからも動作する）
-  var now = new Date();
-  var filename = now.getFullYear() +
-    String(now.getMonth() + 1).padStart(2, '0') +
-    String(now.getDate()).padStart(2, '0') + '.html';
-  var a = document.createElement('a');
-  a.href = 'data:text/html;charset=utf-8,' + encodeURIComponent(html);
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-}
 
 function formatSlope(input) {
   var v = parseFloat(input.value);
