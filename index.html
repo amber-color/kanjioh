@@ -633,9 +633,13 @@ function calculate() {
         } else if (unit > 1) {
           var clone1 = preLRM.map(function(r) { return r.slice(); });
           applyLRM(clone1, sougaku, 1, N, kanjiI);
+          var noteMin = document.createElement('p');
+          noteMin.style.cssText = 'font-size:0.85rem;color:var(--text);margin-top:6px;';
+          noteMin.textContent = '差額が最小となる1円単位で丸めますか？';
+          actEl.appendChild(noteMin);
           var b1fb = document.createElement('button');
           b1fb.className = 'btn-calc';
-          b1fb.textContent = '丸め単位を 1 円に変更して適用（差額最小）';
+          b1fb.textContent = '丸め単位を 1 円に変更して適用';
           b1fb.onclick = (function(arr) { return function() {
             document.getElementById('roundingUnit').value = 1;
             renderToDOM(arr, N, sougaku, gokifusum);
@@ -1047,7 +1051,7 @@ document.querySelectorAll('input[name="slope"]').forEach(function(inp) { formatS
     <h2 id="warnModalTitle"></h2>
     <p id="warnModalMsg"></p>
     <div id="warnModalActions" style="margin-top:12px;display:flex;flex-direction:column;gap:8px;"></div>
-    <button class="btn-calc modal-close" onclick="document.getElementById('warnModal').classList.remove('visible')">閉じる</button>
+    <button class="btn-calc modal-close" onclick="document.getElementById('warnModal').classList.remove('visible')">変更せずに閉じる</button>
   </div>
 </div>
 </body>
