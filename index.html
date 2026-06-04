@@ -608,7 +608,7 @@ function calculate() {
     msgParts.push('<b>幹事の精算額がマイナス</b><br>' + warnLines.join('<br>') + '<br>傾斜や丸め単位を調整してください。');
   }
   if (kanjiSlopeLow.length > 0) {
-    msgParts.push('<b>幹事の精算額が同傾斜以下の参加者より少なくなっています</b><br>' + kanjiSlopeLow.join('、') + '<br>丸め単位を小さくすることで解消できる場合があります。');
+    msgParts.push('<b>幹事の精算額が同傾斜以下の参加者より少なくなっています</b>（幹事が得をしていると見られる可能性があります）<br>' + kanjiSlopeLow.join('、') + '<br>丸め単位を小さくすることで解消できる場合があります。');
   }
   if (slopeMismatch.length > 0) {
     msgParts.push('<b>同傾斜の非幹事で精算額が異なります</b><br>' + slopeMismatch.join('<br>') + '<br>丸め単位を小さくするか、傾斜を変えてください。');
