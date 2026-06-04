@@ -72,10 +72,19 @@ button svg { pointer-events: none; flex-shrink: 0; }
 .btn-add:hover    { background: #d1fae5; transform: translateY(-1px); }
 .btn-calc   { background: var(--primary); color: white; }
 .btn-calc:hover   { background: var(--primary-dark); box-shadow: var(--shadow-md); transform: translateY(-1px); }
-.btn-steep  { background: #fff7ed; color: #c2410c; border: 1.5px solid #fdba74; }
-.btn-steep:hover  { background: #ffedd5; transform: translateY(-1px); }
-.btn-gentle { background: #eff6ff; color: #1d4ed8; border: 1.5px solid #93c5fd; }
-.btn-gentle:hover { background: #dbeafe; transform: translateY(-1px); }
+.slope-group {
+  display: inline-flex; align-items: stretch; height: 36px;
+  border: 1.5px solid var(--border); border-radius: 8px; overflow: hidden; background: white;
+}
+.slope-label {
+  font-size: 0.78rem; font-weight: 600; padding: 0 10px;
+  color: var(--text-muted); display: flex; align-items: center; white-space: nowrap;
+  border-right: 1.5px solid var(--border);
+}
+.btn-steep  { background: #fff7ed; color: #c2410c; border: none; border-left: 1px solid #fde68a; border-radius: 0; padding: 0 12px; }
+.btn-steep:hover  { background: #ffedd5; transform: none; }
+.btn-gentle { background: #eff6ff; color: #1d4ed8; border: none; border-left: 1px solid #bfdbfe; border-radius: 0; padding: 0 12px; }
+.btn-gentle:hover { background: #dbeafe; transform: none; }
 .select-unit {
   padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 8px;
   font-size: 0.875rem; font-weight: 600; font-family: inherit; background: white;
@@ -273,8 +282,11 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
     <option value="1000" selected>1000円単位</option>
   </select>
   <button class="btn-calc" onclick="calculate()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>計算する</button>
-  <button class="btn-steep" onclick="steepSlope()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>傾斜を急にする</button>
-  <button class="btn-gentle" onclick="gentleSlope()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>傾斜を緩くする</button>
+  <div class="slope-group">
+    <span class="slope-label">傾斜微調整</span>
+    <button class="btn-steep" onclick="steepSlope()" title="傾斜を急にする"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></button>
+    <button class="btn-gentle" onclick="gentleSlope()" title="傾斜を緩くする"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg></button>
+  </div>
 </div>
 
 <!-- 総額パネル -->
