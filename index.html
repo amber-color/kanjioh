@@ -419,6 +419,7 @@ function addRow() {
 }
 
 function calculate() {
+  if (!checkSougaku()) return;
   var N = partyCount;
   var Ki = keiIdx(N);
 
@@ -930,11 +931,25 @@ function showError(msg) {
   var titleEl = document.getElementById('warnModalTitle');
   var msgEl   = document.getElementById('warnModalMsg');
   var modalEl = document.getElementById('warnModal');
+  var actEl   = document.getElementById('warnModalActions');
   if (titleEl && msgEl && modalEl) {
     titleEl.textContent = '⚠️ 入力を確認してください';
     msgEl.innerHTML = msg;
+    if (actEl) actEl.innerHTML = '';
     modalEl.classList.add('visible');
   }
+}
+function checkSougaku() {
+  var sum = 0;
+  for (var k = 0; k < partyCount; k++) {
+    var el = document.getElementById('総額' + (k + 1));
+    sum += el ? (Number(el.value) || 0) : 0;
+  }
+  if (sum === 0) {
+    showError('各次会の総額を入力してから操作してください。');
+    return false;
+  }
+  return true;
 }
 
 function Round1(x)    { return Math.round(x); }
@@ -953,6 +968,7 @@ function deleteColumn(idname, indexarr) {
 }
 
 function steepSlope() {
+  if (!checkSougaku()) return;
   var rows = document.getElementById("participantTable").getElementsByTagName("tbody")[0].getElementsByTagName("tr");
   for (var i = 0; i < rows.length; i++) {
     var input = rows[i].getElementsByTagName("td")[1].getElementsByTagName("input")[0];
@@ -963,6 +979,7 @@ function steepSlope() {
   calculate();
 }
 function gentleSlope() {
+  if (!checkSougaku()) return;
   var rows = document.getElementById("participantTable").getElementsByTagName("tbody")[0].getElementsByTagName("tr");
   for (var i = 0; i < rows.length; i++) {
     var input = rows[i].getElementsByTagName("td")[1].getElementsByTagName("input")[0];
