@@ -30,7 +30,15 @@ body {
   color: white; padding: 18px 28px; display: flex; align-items: center; gap: 12px;
   box-shadow: 0 2px 12px rgba(79,70,229,0.3); position: relative;
 }
-.app-header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.3px; }
+.app-header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.3px; flex-shrink: 0; }
+.title-input {
+  background: rgba(255,255,255,0.15); border: 1.5px solid rgba(255,255,255,0.3);
+  border-radius: 8px; color: white; font-size: 0.95rem; font-weight: 600;
+  font-family: inherit; padding: 5px 12px; outline: none; width: 160px;
+  transition: background 0.15s, border-color 0.15s;
+}
+.title-input::placeholder { color: rgba(255,255,255,0.5); }
+.title-input:focus { background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.6); }
 .btn-help {
   margin-left: auto; width: 26px; height: 26px; border-radius: 50%; padding: 0;
   background: rgba(255,255,255,0.2); color: white;
@@ -260,6 +268,7 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
 <body>
 <header class="app-header">
   <h1>👑 幹事王</h1>
+  <input type="text" id="eventTitle" class="title-input" placeholder="タイトル">
   <button class="btn-help" onclick="toggleHelp(event)" aria-label="使い方"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="11" stroke="white" stroke-opacity="0.5" stroke-width="1.5"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="17" x2="12.01" y2="17" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg></button>
   <div class="help-balloon" id="helpBalloon">
     ・「参加者追加」ボタンで参加人数分の行を表示させる<br>
@@ -1031,6 +1040,16 @@ document.getElementById('participantTable').addEventListener('blur', function(e)
 // ページロード時の初期値をフォーマット
 document.querySelectorAll('input[name="slope"]').forEach(function(inp) { formatSlope(inp); });
 
+// タイトル欄のデフォルトを今日の日付に
+(function() {
+  var now = new Date();
+  var ymd = now.getFullYear() +
+    String(now.getMonth() + 1).padStart(2, '0') +
+    String(now.getDate()).padStart(2, '0');
+  var el = document.getElementById('eventTitle');
+  if (el && !el.value) el.value = ymd;
+})();
+
 function getShareData() {
   var rows = document.getElementById('participantTable')
     .getElementsByTagName('tbody')[0].getElementsByTagName('tr');
@@ -1049,9 +1068,11 @@ function getShareData() {
     }
     participants.push(p);
   }
+  var titleEl = document.getElementById('eventTitle');
   return {
     n: partyCount,
     u: Number(document.getElementById('roundingUnit').value),
+    ti: titleEl ? titleEl.value : '',
     t: Array.from({length: partyCount}, function(_, k) {
       var el = document.getElementById('総額' + (k+1));
       return el ? (Number(el.value) || 0) : 0;
@@ -1100,6 +1121,8 @@ function applyShareData(data) {
     if (el) el.value = data.t[k] || '';
   }
   document.getElementById('roundingUnit').value = String(data.u);
+  var titleEl = document.getElementById('eventTitle');
+  if (titleEl && data.ti != null) titleEl.value = data.ti;
 }
 
 function copyShareUrl() {
