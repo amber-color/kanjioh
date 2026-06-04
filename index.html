@@ -64,8 +64,10 @@ main { max-width: 1400px; margin: 0 auto; padding: 20px 16px; }
 .btn-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 16px; }
 button {
   padding: 9px 18px; border: none; border-radius: 8px; font-size: 0.875rem;
-  font-weight: 600; cursor: pointer; transition: all 0.15s ease; font-family: inherit; line-height: 1;
+  font-weight: 600; cursor: pointer; transition: all 0.15s ease; font-family: inherit;
+  display: inline-flex; align-items: center; gap: 5px;
 }
+button svg { pointer-events: none; flex-shrink: 0; }
 .btn-add    { background: #ecfdf5; color: #047857; border: 1.5px solid #6ee7b7; }
 .btn-add:hover    { background: #d1fae5; transform: translateY(-1px); }
 .btn-calc   { background: var(--primary); color: white; }
@@ -226,7 +228,7 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
   background: white; border-radius: 12px; padding: 24px 28px;
   max-width: 360px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
 }
-.modal-box h2 { font-size: 1rem; font-weight: 700; color: #dc2626; margin-bottom: 10px; }
+.modal-box h2 { font-size: 1rem; font-weight: 700; color: #dc2626; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
 .modal-box p  { font-size: 0.875rem; line-height: 1.7; color: var(--text); }
 .modal-close  { margin-top: 18px; width: 100%; }
 
@@ -250,7 +252,7 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
 <body>
 <header class="app-header">
   <h1>👑 幹事王</h1>
-  <button class="btn-help" onclick="toggleHelp(event)" aria-label="使い方">?</button>
+  <button class="btn-help" onclick="toggleHelp(event)" aria-label="使い方"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></button>
   <div class="help-balloon" id="helpBalloon">
     ・「参加者追加」ボタンで参加人数分の行を表示させる<br>
     ・お名前・傾斜・幹事チェック・出欠チェックボックスを入力する<br>
@@ -262,24 +264,24 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
 <main>
 
 <div class="btn-row">
-  <button class="btn-add"    onclick="addRow()">＋ 参加者追加</button>
-  <button class="btn-save"   onclick="saveAsHTML()">HTML保存</button>
+  <button class="btn-add" onclick="addRow()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>参加者追加</button>
+  <button class="btn-save" onclick="saveAsHTML()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>HTML保存</button>
   <select id="roundingUnit" class="select-unit">
     <option value="1">1円単位</option>
     <option value="100">100円単位</option>
     <option value="500">500円単位</option>
     <option value="1000" selected>1000円単位</option>
   </select>
-  <button class="btn-calc"   onclick="calculate()">計算する</button>
-  <button class="btn-steep"  onclick="steepSlope()">傾斜を急にする</button>
-  <button class="btn-gentle" onclick="gentleSlope()">傾斜を緩くする</button>
+  <button class="btn-calc" onclick="calculate()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>計算する</button>
+  <button class="btn-steep" onclick="steepSlope()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>傾斜を急にする</button>
+  <button class="btn-gentle" onclick="gentleSlope()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>傾斜を緩くする</button>
 </div>
 
 <!-- 総額パネル -->
 <div class="party-totals" id="partyTotals">
   <div class="party-total-item"><label>１次会 総額</label><input type="number" class="total-input" id="総額1" min="0"></div>
   <div class="party-total-item"><label>２次会 総額</label><input type="number" class="total-input" id="総額2" min="0"></div>
-  <button class="btn-add-party" id="btnAddParty" onclick="addParty()">＋ 次会追加</button>
+  <button class="btn-add-party" id="btnAddParty" onclick="addParty()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>次会追加</button>
 </div>
 
 <div class="app-layout">
@@ -325,7 +327,7 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
     <div class="result-card" id="resultArea" style="display:none">
       <div id="resultTable"></div>
       <div class="result-actions">
-        <button id="btnCopy" class="btn-copy" onclick="copyResultTable()">クリップボードにコピー</button>
+        <button id="btnCopy" class="btn-copy" onclick="copyResultTable()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>クリップボードにコピー</button>
       </div>
     </div>
     <div id="resultMessages"></div>
@@ -611,12 +613,7 @@ function calculate() {
     var msgEl   = document.getElementById('warnModalMsg');
     var modalEl = document.getElementById('warnModal');
     if (titleEl && msgEl && modalEl) {
-      var activeTypes = [warnLines, kanjiSlopeLow, slopeMismatch, gokifuWarn].filter(function(a) { return a.length > 0; }).length;
-      titleEl.textContent = activeTypes > 1 ? '⚠️ 計算結果に注意が必要です' :
-        warnLines.length > 0        ? '⚠️ 幹事の精算額がマイナスになっています' :
-        kanjiSlopeLow.length > 0    ? '⚠️ 幹事の精算額が同傾斜以下の参加者より少なくなっています' :
-        slopeMismatch.length > 0    ? '⚠️ 同傾斜の精算額が一致していません' :
-                                      '⚠️ ご寄付の計算に過剰が発生しています';
+      titleEl.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>計算結果に注意が必要です';
       msgEl.innerHTML = msgParts.join('<br><br>');
       if (actEl && kanjiSlopeLow.length > 0) {
         var sugU = findSuggestedUnit(preLRM, sougaku, unit, N, kanjiI);
@@ -1051,7 +1048,7 @@ document.querySelectorAll('input[name="slope"]').forEach(function(inp) { formatS
     <h2 id="warnModalTitle"></h2>
     <p id="warnModalMsg"></p>
     <div id="warnModalActions" style="margin-top:12px;display:flex;flex-direction:column;gap:8px;"></div>
-    <button class="btn-calc modal-close" onclick="document.getElementById('warnModal').classList.remove('visible')">変更せずに閉じる</button>
+    <button class="btn-calc modal-close" onclick="document.getElementById('warnModal').classList.remove('visible')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>変更せずに閉じる</button>
   </div>
 </div>
 </body>
