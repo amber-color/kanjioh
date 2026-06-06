@@ -48,8 +48,9 @@ body {
 .help-balloon {
   display: none; position: absolute; top: calc(100% + 10px); right: 0;
   background: white; color: var(--text); border-radius: 10px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.18); padding: 14px 18px;
-  font-size: 0.85rem; line-height: 1.9; max-width: 380px; min-width: 260px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18); padding: 16px 20px;
+  font-size: 0.82rem; line-height: 1.75; max-width: 460px; min-width: 300px;
+  max-height: 80vh; overflow-y: auto;
   z-index: 300; border: 1px solid var(--border);
 }
 .help-balloon::before {
@@ -271,11 +272,24 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
   <input type="text" id="eventTitle" class="title-input" placeholder="タイトル">
   <button class="btn-help" onclick="toggleHelp(event)" aria-label="使い方"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="11" stroke="white" stroke-opacity="0.5" stroke-width="1.5"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="17" x2="12.01" y2="17" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg></button>
   <div class="help-balloon" id="helpBalloon">
-    ・「参加者追加」ボタンで参加人数分の行を表示させる<br>
-    ・お名前・傾斜・幹事チェック・出欠チェックボックスを入力する<br>
-    ・ご寄付がある場合はチェックボックス横の欄に入力する<br>
-    ・上の総額パネルに各次会の支払総額を入力する<br>
-    ・「計算する」ボタンで精算額が右に表示される
+    <b>📋 基本的な使い方</b><br>
+    ① 「参加者追加」で参加者の行を必要な人数分追加<br>
+    ② 名前・傾斜・幹事（ラジオボタン）を設定<br>
+    ③ 各次会の出欠チェックを入れる（ご寄付がある場合は金額も入力）<br>
+    ④ 上部の総額パネルに各次会の支払総額を入力<br>
+    ⑤ 丸め単位を選んで「計算」<br>
+    <br>
+    <b>📐 傾斜とは</b><br>
+    参加者ごとの支払い比率の重み。傾斜5の人は傾斜1の人の5倍を負担します。同じ傾斜の人は同額になるよう計算されます。「傾斜微調整」ボタンで全員の傾斜を一括で急に・緩やかにできます。<br>
+    <br>
+    <b>👑 幹事とは</b><br>
+    丸め処理で生じる端数を引き受ける人。1人だけラジオボタンで選択します。幹事が同傾斜の参加者より少ない金額になった場合は警告モーダルが表示され、より小さい丸め単位への変更を提案します。<br>
+    <br>
+    <b>🔢 丸め単位</b><br>
+    精算額を何円単位で丸めるか選択します（1・100・500・1000円）。単位が大きいほど端数の偏りが大きくなりますが、集金が楽になります。<br>
+    <br>
+    <b>🔗 URL共有</b><br>
+    「共有」ボタンで入力内容をURLに保存しクリップボードにコピー。そのURLを送るだけで受け取った人が同じ状態を再現できます。サーバーには送信されません（URL内にデータを格納）。
   </div>
 </header>
 <main>
