@@ -374,6 +374,7 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
 </main>
 <script>
 var partyCount = 2;
+var _suppressModal = false;
 
 var partyLabels = ["","１次会","２次会","３次会","４次会","５次会","６次会","７次会","８次会","９次会","１０次会"];
 function partyLabel(n) { return partyLabels[n] || n + "次会"; }
@@ -680,7 +681,7 @@ function calculate() {
           actEl.appendChild(b1fb);
         }
       }
-      modalEl.classList.add('visible');
+      if (!_suppressModal) modalEl.classList.add('visible');
     }
   }
 
@@ -959,7 +960,7 @@ function showError(msg) {
     titleEl.textContent = '⚠️ 入力を確認してください';
     msgEl.innerHTML = msg;
     if (actEl) actEl.innerHTML = '';
-    modalEl.classList.add('visible');
+    if (!_suppressModal) modalEl.classList.add('visible');
   }
 }
 function checkSougaku() {
@@ -1158,6 +1159,9 @@ function copyShareUrl() {
   try {
     var data = JSON.parse(decodeURIComponent(escape(atob(hash))));
     applyShareData(data);
+    _suppressModal = true;
+    calculate();
+    _suppressModal = false;
   } catch(e) {}
 })();
 </script>
