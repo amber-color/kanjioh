@@ -513,11 +513,14 @@ function calculate() {
   }
 
   // 精算額（寄付控除後）[netIdx]、超過寄付を蓄積
+  // 非参加者の寄付はeffectiveSougakuで既に控除済みのためexgokifuに加えない
   var exgokifu = new Array(N).fill(0);
   for (var i = 0; i < resultArray.length; i++) {
     for (var k = 0; k < N; k++) {
       var don = Number(resultArray[i][donIdx(k)]) || 0;
-      if (don >= resultArray[i][shareIdx(k, N)]) {
+      if (!Number(resultArray[i][attIdx(k)])) {
+        resultArray[i][netIdx(k, N)] = 0;
+      } else if (don >= resultArray[i][shareIdx(k, N)]) {
         resultArray[i][netIdx(k, N)] = 0;
         exgokifu[k] += don - resultArray[i][shareIdx(k, N)];
       } else {
