@@ -318,6 +318,7 @@ body.view-mode .view-banner { max-width: 700px; margin-left: auto; margin-right:
 <div class="view-banner" id="viewBanner">
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
   <span>共有リンクで開いています</span>
+  <button class="btn-edit-mode" onclick="copyShareUrl(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>共有</button>
   <button class="btn-edit-mode" onclick="exitViewMode()">編集する</button>
 </div>
 
@@ -335,7 +336,7 @@ body.view-mode .view-banner { max-width: 700px; margin-left: auto; margin-right:
     <option value="1000" selected>1000円単位</option>
   </select>
   <button class="btn-calc" onclick="calculate()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>計算</button>
-  <button id="btnShare" class="btn-save" onclick="copyShareUrl()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>共有</button>
+  <button id="btnShare" class="btn-save" onclick="copyShareUrl(this)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>共有</button>
   <button class="btn-add" onclick="confirmReset()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg>リセット</button>
 </div>
 
@@ -1236,17 +1237,21 @@ function exitViewMode() {
   document.body.classList.remove('view-mode');
 }
 
-function copyShareUrl() {
+function copyShareUrl(btn) {
   var encoded = LZString.compressToEncodedURIComponent(JSON.stringify(getShareData()));
   history.replaceState(null, '', '#' + encoded);
-  var btn = document.getElementById('btnShare');
+  btn = btn || document.getElementById('btnShare');
   var orig = btn.innerHTML;
-  navigator.clipboard.writeText(location.href).then(function() {
-    btn.textContent = '共有リンクをコピー完了';
-    setTimeout(function() { btn.innerHTML = orig; }, 2000);
-  }).catch(function() {
+  try {
+    navigator.clipboard.writeText(location.href).then(function() {
+      btn.textContent = 'コピー完了';
+      setTimeout(function() { btn.innerHTML = orig; }, 2000);
+    }).catch(function() {
+      prompt('以下のURLをコピーしてください', location.href);
+    });
+  } catch(e) {
     prompt('以下のURLをコピーしてください', location.href);
-  });
+  }
 }
 
 (function() {
