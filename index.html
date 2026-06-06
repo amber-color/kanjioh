@@ -484,6 +484,16 @@ function calculate() {
     for (var k = 0; k < N; k++) keishasum[k] += Number(resultArray[i][1]) * Number(resultArray[i][attIdx(k)]);
   }
 
+  // 非参加者の寄付を除いた実効総額（参加者シェア計算用）
+  var effectiveSougaku = sougaku.slice();
+  for (var i = 0; i < resultArray.length; i++) {
+    for (var k = 0; k < N; k++) {
+      if (!Number(resultArray[i][attIdx(k)])) {
+        effectiveSougaku[k] -= Number(resultArray[i][donIdx(k)]) || 0;
+      }
+    }
+  }
+
   // 寄付なし仮精算額 [shareIdx]
   for (var i = 0; i < resultArray.length; i++) {
     for (var k = 0; k < N; k++) {
@@ -491,7 +501,7 @@ function calculate() {
         resultArray[i][shareIdx(k, N)] = 0;
         if (sougaku[k] > 0) { showError(partyLabel(k+1) + 'は総額が記入されていますが、参加者がいません。'); return; }
       } else {
-        resultArray[i][shareIdx(k, N)] = sougaku[k] * Number(resultArray[i][1]) * Number(resultArray[i][attIdx(k)]) / keishasum[k];
+        resultArray[i][shareIdx(k, N)] = effectiveSougaku[k] * Number(resultArray[i][1]) * Number(resultArray[i][attIdx(k)]) / keishasum[k];
       }
     }
   }
