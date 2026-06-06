@@ -309,6 +309,7 @@ input[type="radio"]    { width: 16px; height: 16px; accent-color: var(--primary)
   </select>
   <button class="btn-calc" onclick="calculate()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>計算</button>
   <button id="btnShare" class="btn-save" onclick="copyShareUrl()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>共有</button>
+  <button class="btn-add" onclick="confirmReset()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg>リセット</button>
 </div>
 
 <!-- 総額パネル -->
@@ -1140,13 +1141,52 @@ function applyShareData(data) {
   if (titleEl && data.ti != null) titleEl.value = data.ti;
 }
 
+function confirmReset() {
+  var titleEl = document.getElementById('warnModalTitle');
+  var msgEl   = document.getElementById('warnModalMsg');
+  var actEl   = document.getElementById('warnModalActions');
+  var modalEl = document.getElementById('warnModal');
+  titleEl.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg>リセット確認';
+  msgEl.textContent = '入力内容をすべて消去してデフォルトの状態に戻しますか？';
+  actEl.innerHTML = '';
+  var btn = document.createElement('button');
+  btn.className = 'btn-calc';
+  btn.textContent = 'リセットする';
+  btn.onclick = function() { doReset(); };
+  actEl.appendChild(btn);
+  modalEl.classList.add('visible');
+}
+
+function doReset() {
+  resetToBase();
+  addRow();
+  for (var k = 1; k <= 2; k++) {
+    var el = document.getElementById('総額' + k);
+    if (el) el.value = '';
+  }
+  document.getElementById('roundingUnit').value = '1000';
+  var titleEl = document.getElementById('eventTitle');
+  if (titleEl) {
+    var now = new Date();
+    titleEl.value = now.getFullYear() +
+      String(now.getMonth() + 1).padStart(2, '0') +
+      String(now.getDate()).padStart(2, '0');
+  }
+  document.getElementById('resultArea').style.display = 'none';
+  document.getElementById('resultPlaceholder').style.display = '';
+  document.getElementById('resultTable').innerHTML = '';
+  document.getElementById('resultMessages').innerHTML = '';
+  history.replaceState(null, '', location.pathname);
+  document.getElementById('warnModal').classList.remove('visible');
+}
+
 function copyShareUrl() {
   var encoded = btoa(unescape(encodeURIComponent(JSON.stringify(getShareData()))));
   history.replaceState(null, '', '#' + encoded);
   var btn = document.getElementById('btnShare');
   var orig = btn.innerHTML;
   navigator.clipboard.writeText(location.href).then(function() {
-    btn.textContent = 'コピー完了';
+    btn.textContent = '共有リンクをコピー完了';
     setTimeout(function() { btn.innerHTML = orig; }, 2000);
   }).catch(function() {
     prompt('以下のURLをコピーしてください', location.href);
