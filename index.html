@@ -338,6 +338,7 @@ body.view-mode .view-banner { max-width: 700px; margin-left: auto; margin-right:
   <button id="btnShare" class="btn-save" onclick="copyShareUrl()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>共有</button>
   <button class="btn-add" onclick="confirmReset()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg>リセット</button>
 </div>
+<div id="slopeNote" style="display:none; font-size:0.82rem; color:#b45309; background:#fffbeb; border:1px solid #fcd34d; border-radius:6px; padding:6px 12px; margin-bottom:8px;"></div>
 
 <!-- 総額パネル -->
 <div class="party-totals" id="partyTotals">
@@ -1044,24 +1045,45 @@ function deleteColumn(idname, indexarr) {
 function steepSlope() {
   if (!checkSougaku()) return;
   var rows = document.getElementById("participantTable").getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+  var slopes = [];
   for (var i = 0; i < rows.length; i++) {
     var input = rows[i].getElementsByTagName("td")[1].getElementsByTagName("input")[0];
     var val = Number(input.value);
+    slopes.push(val);
     input.value = val > 0 ? Math.round(Math.pow(val, 1.25) * 100) / 100 : 0;
     formatSlope(input);
   }
   calculate();
+  var positives = slopes.filter(function(v){return v > 0;});
+  if (positives.length > 0 && positives.every(function(v){return v === positives[0];})) {
+    showSlopeNote('全員の傾斜が同じため比率は変わりません。個別に傾斜の数値を変えてください。');
+  }
 }
 function gentleSlope() {
   if (!checkSougaku()) return;
   var rows = document.getElementById("participantTable").getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+  var slopes = [];
   for (var i = 0; i < rows.length; i++) {
     var input = rows[i].getElementsByTagName("td")[1].getElementsByTagName("input")[0];
     var val = Number(input.value);
+    slopes.push(val);
     input.value = val > 0 ? Math.round(Math.pow(val, 0.8) * 100) / 100 : 0;
     formatSlope(input);
   }
   calculate();
+  var positives = slopes.filter(function(v){return v > 0;});
+  if (positives.length > 0 && positives.every(function(v){return v === positives[0];})) {
+    showSlopeNote('全員の傾斜が同じため比率は変わりません。個別に傾斜の数値を変えてください。');
+  }
+}
+
+function showSlopeNote(msg) {
+  var el = document.getElementById('slopeNote');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(el._t);
+  el._t = setTimeout(function(){ el.style.display = 'none'; }, 4000);
 }
 
 function copyResultTable() {
